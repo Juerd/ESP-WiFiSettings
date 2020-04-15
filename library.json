@@ -1,5 +1,6 @@
 {
     "name": "esp32-WiFiConfig",
+    "version": "1.0.0",
     "keywords": "esp32, wifi",
     "description": "WiFi Manager for the ESP32 Arduino environment", 
     "authors": { "name": "Juerd Waalboer" },
