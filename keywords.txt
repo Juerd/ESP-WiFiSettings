@@ -1,0 +1,12 @@
+WiFiConfig	KEYWORD1
+connect	KEYWORD2
+portal	KEYWORD2
+hostname	KEYWORD2
+onConnect	KEYWORD2
+onWaitLoop	KEYWORD2
+onSuccess	KEYWORD2
+onFailure	KEYWORD2
+onPortal	KEYWORD2
+onPortalWaitLoop	KEYWORD2
+onConfigSaved	KEYWORD2
+onRestart	KEYWORD2
