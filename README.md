@@ -42,7 +42,8 @@ restarting the microcontroller is the only way to leave the configuration
 portal. A button to restart is provided in the web interface.
 
 The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
-that are dumped in the root directory of the filesystem.
+that are dumped in the root directory of the filesystem. Debug output
+(including the password to the configuration portal) is written to `Serial`.
 
 ## Reference
 
