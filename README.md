@@ -41,9 +41,16 @@ It was written for ease of use, not for extended functionality. For example,
 restarting the microcontroller is the only way to leave the configuration
 portal. A button to restart is provided in the web interface.
 
+The library generates a random password to protect the portal with, but
+it's only secured if you choose to do so by checking a checkbox. Of course,
+the user can also pick their own password. "Hard coding" the password in
+your program is a bad practice, and not supported.
+
 The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
 that are dumped in the root directory of the filesystem. Debug output
 (including the password to the configuration portal) is written to `Serial`.
+
+Only automatic IP address assignment (DHCP) is supported.
 
 ## Reference
 
