@@ -57,7 +57,7 @@ address, in reverse byte order.
 
 The password for the access point can be set in the configuration portal.
 
-### WiFi.connect(bool portal = true, int wait_seconds = 30)
+### bool WiFi.connect(bool portal = true, int wait_seconds = 30)
 
 If no WiFi network is configured yet, starts the configuration portal.
 In other cases, it will attempt to connect to the network, and wait until
@@ -78,7 +78,7 @@ Calls the following callbacks:
 * WiFiConfig.onSuccess
 * WiFiConfig.onFailure
 
-## WiFi.portal()
+### void WiFi.portal()
 
 Disconnects any active WiFi and turns the ESP32 into a captive portal with a
 DNS server that works on every hostname.
