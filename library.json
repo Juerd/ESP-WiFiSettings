@@ -1,0 +1,9 @@
+{
+    "name": "esp32-WiFiConfig",
+    "keywords": "esp32, wifi",
+    "description": "WiFi Manager for the ESP32 Arduino environment", 
+    "authors": { "name": "Juerd Waalboer" },
+    "repository": { "type": "git", "url": "https://github.com/Juerd/esp32-WiFiConfig" },
+    "frameworks": "arduino",
+    "platforms": "espressif32"
+}
