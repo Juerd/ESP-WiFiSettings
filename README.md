@@ -108,7 +108,7 @@ Calls the following callbacks:
 * WiFiConfig.onRestart
 
 ## long WiFiConfig.integer(String name, [long min, long max,] int init = 0, String label = name)
-## String WiFiConfig.string(String name, [unsigned int max_length,] String init = "", String label = name)
+## String WiFiConfig.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)
 ## bool WiFiConfig.checkbox(String name, bool init = false, String label = name)
 
 Configures a custom configurable option and returns the current value. When no
@@ -132,4 +132,6 @@ configuration portal.
 Some restrictions for the values can be given. Note that these limitations are
 implemented on the client side, and may not be respected by browsers. For
 integers, a range can be specified by supplying both `min` and `max`. For
-strings, a maximum length can be specified as `max_length`.
+strings, a maximum length can be specified as `max_length`. A minimum string
+length can be set with `min_length`, effectively making the field mandatory:
+it can no longer be left empty to get the `init` value.

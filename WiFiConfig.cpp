@@ -25,18 +25,11 @@ void spurt(String fn, String content) {
 }
 
 String pwgen() {
-    const char* filename     = "/my-password";
-    const char* passchars    = "ABCEFGHJKLMNPRSTUXYZabcdefhkmnorstvxz23456789-#@%^";
-
-    String password = slurp(filename);
-
-    if (password.length() == 0) {
-        for (int i = 0; i < 16; i++) {
-             password.concat( passchars[random(strlen(passchars))] );
-        }
-        spurt(filename, password);
+    const char* passchars = "ABCEFGHJKLMNPRSTUXYZabcdefhkmnorstvxz23456789-#@%^";
+    String password = "";
+    for (int i = 0; i < 16; i++) {
+        password.concat( passchars[random(strlen(passchars))] );
     }
-
     return password;
 }
 String html_entities(String raw) {
@@ -69,11 +62,12 @@ struct WiFiConfigParameter {
 
 struct WiFiConfigString : WiFiConfigParameter {
     String html() {
-        String h = "<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' maxlength={max}></label>";
+        String h = "<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' minlength={min} maxlength={max}></label>";
         h.replace("{name}", html_entities(name));
         h.replace("{value}", html_entities(value));
         h.replace("{init}", html_entities(init));
         h.replace("{label}", html_entities(label));
+        h.replace("{min}", String(min));
         h.replace("{max}", String(max));
         return h;
     }
@@ -86,7 +80,7 @@ struct WiFiConfigInt : WiFiConfigParameter {
         h.replace("{value}", html_entities(value));
         h.replace("{init}", html_entities(init));
         h.replace("{label}", html_entities(label));
-        h.replace("{min}", String(min));
+        h.replace("{min}", String(min > 0 ? min : 0));
         h.replace("{max}", String(max));
         return h;
     }
@@ -110,6 +104,7 @@ struct WiFiConfigBool : WiFiConfigParameter {
 struct std::vector<WiFiConfigParameter*> params;
 
 String WiFiConfigClass::string(String name, String init, String label) {
+    begin();
     struct WiFiConfigString* x = new WiFiConfigString();
     x->name = name;
     x->label = label.length() ? label : name;
@@ -126,7 +121,15 @@ String WiFiConfigClass::string(String name, unsigned int max_length, String init
     return rv;
 }
 
+String WiFiConfigClass::string(String name, unsigned int min_length, unsigned int max_length, String init, String label) {
+    String rv = string(name, init, label);
+    params.back()->min = min_length;
+    params.back()->max = max_length;
+    return rv;
+}
+
 long WiFiConfigClass::integer(String name,  long init, String label) {
+    begin();
     struct WiFiConfigInt* x = new WiFiConfigInt();
     x->name = name;
     x->label = label.length() ? label : name;
@@ -145,6 +148,7 @@ long WiFiConfigClass::integer(String name, long min, long max,  long init, Strin
 }
 
 bool WiFiConfigClass::checkbox(String name, bool init, String label) {
+    begin();
     struct WiFiConfigBool* x = new WiFiConfigBool();
     x->name = name;
     x->label = label.length() ? label : name;
@@ -163,16 +167,15 @@ void WiFiConfigClass::portal() {
     static WebServer http(80);
     static DNSServer dns;
     static int num_networks = -1;
-    String wpa = slurp("/wifi-portal-wpa");
-    String my_password = pwgen();
+    begin();
 
     if (onPortal) onPortal();
     WiFi.disconnect(true, true);    // reset state so .scanNetworks() works
 
     Serial.println("Starting access point for configuration portal.");
-    if (wpa.length() && my_password.length()) {
-        Serial.printf("SSID: '%s', Password: '%s'\n", hostname.c_str(), my_password.c_str());
-        WiFi.softAP(hostname.c_str(), my_password.c_str());
+    if (secure && password.length()) {
+        Serial.printf("SSID: '%s', Password: '%s'\n", hostname.c_str(), password.c_str());
+        WiFi.softAP(hostname.c_str(), password.c_str());
     } else {
         Serial.printf("SSID: '%s'\n", hostname.c_str());
         WiFi.softAP(hostname.c_str());
@@ -196,9 +199,8 @@ void WiFiConfigClass::portal() {
             "<form method=post>"
                 "SSID: <select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">{options}</select> "
                 "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
-                "</select><br>WiFi WEP/WPA password: <input name=password value='{password}'><br>"
-                "<p>My password: <input name=my_password value='{my_password}' minlength=8 required> (8+ characters)<br>"
-                "<label><input type=checkbox name=portalpw value=yes{portalwpa}> Require &uarr;password&uarr; for configuration portal</label><hr>";
+                "</select><br>WiFi WEP/WPA password: <input name=password value='{password}'>"
+                "<hr>";
 
         for (auto p : params) html += p->html() + "<p>";
 
@@ -211,8 +213,6 @@ void WiFiConfigClass::portal() {
 
         html.replace("{hostname}",    hostname);
         html.replace("{ssid}",        current.length() ? html_entities(current) : "(not set)");
-        html.replace("{portalwpa}",   slurp("/wifi-portal-wpa").length() ? " checked" : "");
-        html.replace("{my_password}", html_entities(pwgen()));
 
         String options;
         if (num_networks < 0) num_networks = WiFi.scanNetworks();
@@ -236,14 +236,15 @@ void WiFiConfigClass::portal() {
     });
 
     http.on("/", HTTP_POST, [this]() {
+        spurt("/wifi-ssid", http.arg("ssid"));
+
         String pw = http.arg("password");
         if (pw != "##**##**##**") {
             spurt("/wifi-password", pw);
         }
-        spurt("/wifi-ssid",       http.arg("ssid"));
-        spurt("/wifi-portal-wpa", http.arg("portalpw") == "yes" ? "x" : "");
-        spurt("/my-password",     http.arg("my_password"));
+
         for (auto p : params) p->store(http.arg(p->name));
+
         http.sendHeader("Location", "/");
         http.send(302, "text/plain", "ok");
         if (onConfigSaved) onConfigSaved();
@@ -278,6 +279,8 @@ void WiFiConfigClass::portal() {
 }
 
 bool WiFiConfigClass::connect(bool portal, int wait_seconds) {
+    begin();
+
     String ssid = slurp("/wifi-ssid");
     String pw = slurp("/wifi-password");
     if (ssid.length() == 0 && portal) {
@@ -285,7 +288,7 @@ bool WiFiConfigClass::connect(bool portal, int wait_seconds) {
         this->portal();
     }
 
-    Serial.printf("Connecting to WiFi %s", ssid.c_str());
+    Serial.printf("Connecting to WiFi SSID '%s'", ssid.c_str());
     if (onConnect) onConnect();
     WiFi.begin(ssid.c_str(), pw.c_str());
 
@@ -305,6 +308,23 @@ bool WiFiConfigClass::connect(bool portal, int wait_seconds) {
     Serial.println(WiFi.softAPIP().toString());
     if (onSuccess) onSuccess();
     return true;
+}
+
+void WiFiConfigClass::begin() {
+    if (begun) return;
+    begun = true;
+
+    // These things can't go in the constructor because the constructor runs
+    // before SPIFFS.begin()
+
+    secure = checkbox("WiFiConfig-secure", false, "Protect the configuration portal with a WiFi password");
+
+    password = string("WiFiConfig-password", 8, 63, "", "WiFi password for the configuration portal");
+    if (password == "") {
+        // With regular 'init' semantics, the password would be changed all the time.
+        password = pwgen();
+        params.back()->store(password);
+    }
 }
 
 WiFiConfigClass::WiFiConfigClass() {
