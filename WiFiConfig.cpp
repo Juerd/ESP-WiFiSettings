@@ -305,7 +305,7 @@ bool WiFiConfigClass::connect(bool portal, int wait_seconds) {
         return false;
     }
 
-    Serial.println(WiFi.softAPIP().toString());
+    Serial.println(WiFi.localIP().toString());
     if (onSuccess) onSuccess();
     return true;
 }
