@@ -195,7 +195,7 @@ void WiFiConfigClass::portal() {
                 "<input type=submit value='Restart device'>"
             "</form>"
             "<hr>"
-            "<h2>Configureren</h2>"
+            "<h2>Configuration</h2>"
             "<form method=post>"
                 "<label>SSID:<br><select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">{options}</select></label> "
                 "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
