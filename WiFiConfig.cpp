@@ -169,7 +169,6 @@ void WiFiConfigClass::portal() {
     static int num_networks = -1;
     begin();
 
-    if (onPortal) onPortal();
     WiFi.disconnect(true, true);    // reset state so .scanNetworks() works
 
     Serial.println("Starting access point for configuration portal.");
@@ -184,6 +183,7 @@ void WiFiConfigClass::portal() {
     dns.setTTL(0);
     dns.start(53, "*", WiFi.softAPIP());
 
+    if (onPortal) onPortal();
     Serial.println(WiFi.softAPIP().toString());
 
     http.on("/", HTTP_GET, [this]() {
