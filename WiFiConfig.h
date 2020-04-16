@@ -29,15 +29,6 @@ class WiFiConfigClass {
     private:
 };
 
-/*class WiFiConfigString: public String {
-    public:
-        WiFiConfigString(const char *p) : String(p) {}
-        WiFiConfigString(const String &s) : String(s) {}
-        String name;
-    private:
-};
-*/
-
 extern WiFiConfigClass WiFiConfig;
 
 #endif
