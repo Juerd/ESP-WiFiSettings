@@ -200,11 +200,7 @@ void WiFiConfigClass::portal() {
                 "SSID: <select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">{options}</select> "
                 "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
                 "</select><br>WiFi WEP/WPA password: <input name=password value='{password}'>"
-                "<hr>";
-
-        for (auto p : params) html += p->html() + "<p>";
-
-        html +=
+                "<hr>{params}"
                 "<input type=submit value=Save>"
             "</form>";
 
@@ -231,7 +227,11 @@ void WiFiConfigClass::portal() {
             options += opt;
         }
         html.replace("{password}", found && pw.length() ? "##**##**##**" : "");
-        html.replace("{options}",    options);
+        html.replace("{options}", options);
+
+        String params_html;
+        for (auto p : params) params_html += p->html() + "<p>";
+        html.replace("{params}", params_html);
         http.send(200, "text/html", html);
     });
 
