@@ -17,6 +17,7 @@ class WiFiConfigClass {
         String string(String name, unsigned int max_length, String init = "", String label = "");
         long integer(String name, long init = 0, String label = "");
         long integer(String name, long min, long max, long init = 0, String label = "");
+        bool checkbox(String name, bool init = false, String label = "");
 
         TCallback onConnect;
         TCallbackInt onWaitLoop;

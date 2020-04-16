@@ -62,7 +62,7 @@ struct WiFiConfigParameter {
     long max = LONG_MAX;
 
     String filename() { String fn = "/"; fn += name; return fn; }
-    void store(String v) { value = v; spurt(filename(), v); }
+    virtual void store(String v) { value = v; spurt(filename(), v); }
     void fill() { value = slurp(filename()); }
     virtual String html() = 0;
 };
@@ -89,6 +89,21 @@ struct WiFiConfigInt : WiFiConfigParameter {
         h.replace("{min}", String(min));
         h.replace("{max}", String(max));
         return h;
+    }
+};
+
+struct WiFiConfigBool : WiFiConfigParameter {
+    String html() {
+        String h = "<label><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>";
+        h.replace("{name}", html_entities(name));
+        h.replace("{checked}", value.toInt() ? " checked" : "");
+        h.replace("{init}", init.toInt() ? "&#x2611;" : "&#x2610;");
+        h.replace("{label}", html_entities(label));
+        return h;
+    }
+    virtual void store(String v) {
+        value = v.length() ? "1" : "0";
+        spurt(filename(), value);
     }
 };
 
@@ -127,6 +142,21 @@ long WiFiConfigClass::integer(String name, long min, long max,  long init, Strin
     params.back()->min = min;
     params.back()->max = max;
     return rv;
+}
+
+bool WiFiConfigClass::checkbox(String name, bool init, String label) {
+    struct WiFiConfigBool* x = new WiFiConfigBool();
+    x->name = name;
+    x->label = label.length() ? label : name;
+    x->init = String((int) init);
+    x->fill();
+
+    // Apply default immediately because a checkbox has no placeholder to
+    // show the default, and other UI elements aren't sufficiently pretty.
+    if (! x->value.length()) x->value = x->init;
+
+    params.push_back(x);
+    return x->value.toInt();
 }
 
 void WiFiConfigClass::portal() {

@@ -109,6 +109,7 @@ Calls the following callbacks:
 
 ## long WiFiConfig.integer(String name, [long min, long max,] [int init = 0, String label = name])
 ## String WiFiConfig.string(String name, [unsigned int max_length,] [String init = "", String label = name])
+## bool WiFiConfig.checkbox(String name, [bool init = false, String label = name])
 
 Configures a custom configurable option and returns the current value. When no
 value (or an empty string) is configured, the value given as `init` is returned.
