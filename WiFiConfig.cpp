@@ -112,7 +112,7 @@ String WiFiConfigClass::string(String name, unsigned int max_length, String init
 }
 
 long WiFiConfigClass::integer(String name,  long init, String label) {
-    struct WiFiConfigString* x = new WiFiConfigString();
+    struct WiFiConfigInt* x = new WiFiConfigInt();
     x->name = name;
     x->label = label.length() ? label : name;
     x->init = init;
