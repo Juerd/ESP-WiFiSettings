@@ -197,9 +197,10 @@ void WiFiConfigClass::portal() {
             "<hr>"
             "<h2>Configureren</h2>"
             "<form method=post>"
-                "SSID: <select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">{options}</select> "
+                "<label>SSID:<br><select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">{options}</select></label> "
                 "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
-                "</select><br>WiFi WEP/WPA password: <input name=password value='{password}'>"
+                "</select>"
+                "<p><label>WiFi WEP/WPA password:<br><input name=password value='{password}'></label>"
                 "<hr>{params}"
                 "<input type=submit value=Save>"
             "</form>";
