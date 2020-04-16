@@ -6,22 +6,23 @@
 #include <WebServer.h>
 #include <HTTP_Method.h>
 #include <esp_task_wdt.h>
+#include <limits.h>
+#include <vector>
 
 #define Sprintf(f, ...) ({ char* s; asprintf(&s, f, __VA_ARGS__); String r = s; free(s); r; })
 
-String slurp(const char* fn) {
+String slurp(String fn) {
     File f = SPIFFS.open(fn, "r");
     String r = f.readString();
     f.close();
     return r;
 }
 
-void spurt(const char* fn, String content) {
+void spurt(String fn, String content) {
     File f = SPIFFS.open(fn, "w");
     f.print(content);
     f.close();
 }
-
 
 String pwgen() {
     const char* filename     = "/my-password";
@@ -50,6 +51,82 @@ String html_entities(String raw) {
         }
     }
     return r;
+}
+
+struct WiFiConfigParameter {
+    String name;
+    String label;
+    String value;
+    String init;
+    long min = LONG_MIN;
+    long max = LONG_MAX;
+
+    String filename() { String fn = "/"; fn += name; return fn; }
+    void store(String v) { value = v; spurt(filename(), v); }
+    void fill() { value = slurp(filename()); }
+    virtual String html() = 0;
+};
+
+struct WiFiConfigString : WiFiConfigParameter {
+    String html() {
+        String h = "<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' maxlength={max}></label>";
+        h.replace("{name}", html_entities(name));
+        h.replace("{value}", html_entities(value));
+        h.replace("{init}", html_entities(init));
+        h.replace("{label}", html_entities(label));
+        h.replace("{max}", String(max));
+        return h;
+    }
+};
+
+struct WiFiConfigInt : WiFiConfigParameter {
+    String html() {
+        String h = "<label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>";
+        h.replace("{name}", html_entities(name));
+        h.replace("{value}", html_entities(value));
+        h.replace("{init}", html_entities(init));
+        h.replace("{label}", html_entities(label));
+        h.replace("{min}", String(min));
+        h.replace("{max}", String(max));
+        return h;
+    }
+};
+
+struct std::vector<WiFiConfigParameter*> params;
+
+String WiFiConfigClass::string(String name, String init, String label) {
+    struct WiFiConfigString* x = new WiFiConfigString();
+    x->name = name;
+    x->label = label.length() ? label : name;
+    x->init = init;
+    x->fill();
+
+    params.push_back(x);
+    return x->value.length() ? x->value : x->init;
+}
+
+String WiFiConfigClass::string(String name, unsigned int max_length, String init, String label) {
+    String rv = string(name, init, label);
+    params.back()->max = max_length;
+    return rv;
+}
+
+long WiFiConfigClass::integer(String name,  long init, String label) {
+    struct WiFiConfigString* x = new WiFiConfigString();
+    x->name = name;
+    x->label = label.length() ? label : name;
+    x->init = init;
+    x->fill();
+
+    params.push_back(x);
+    return (x->value.length() ? x->value : x->init).toInt();
+}
+
+long WiFiConfigClass::integer(String name, long min, long max,  long init, String label) {
+    long rv = integer(name, init, label);
+    params.back()->min = min;
+    params.back()->max = max;
+    return rv;
 }
 
 void WiFiConfigClass::portal() {
@@ -91,8 +168,12 @@ void WiFiConfigClass::portal() {
                 "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
                 "</select><br>WiFi WEP/WPA password: <input name=password value='{password}'><br>"
                 "<p>My password: <input name=my_password value='{my_password}' minlength=8 required> (8+ characters)<br>"
-                "<label><input type=checkbox name=portalpw value=yes{portalwpa}> Require &uarr;password&uarr; for configuration portal</label>"
-                "<p><input type=submit value=Save>"
+                "<label><input type=checkbox name=portalpw value=yes{portalwpa}> Require &uarr;password&uarr; for configuration portal</label><hr>";
+
+        for (auto p : params) html += p->html() + "<p>";
+
+        html +=
+                "<input type=submit value=Save>"
             "</form>";
 
         String current = slurp("/wifi-ssid");
@@ -132,6 +213,7 @@ void WiFiConfigClass::portal() {
         spurt("/wifi-ssid",       http.arg("ssid"));
         spurt("/wifi-portal-wpa", http.arg("portalpw") == "yes" ? "x" : "");
         spurt("/my-password",     http.arg("my_password"));
+        for (auto p : params) p->store(http.arg(p->name));
         http.sendHeader("Location", "/");
         http.send(302, "text/plain", "ok");
         if (onConfigSaved) onConfigSaved();

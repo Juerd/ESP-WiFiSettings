@@ -14,7 +14,7 @@ void setup() {
 }
 ```
 
-## Example with callbacks
+## Example with callbacks and custom variables
 
 ```
 void setup() {
@@ -26,6 +26,10 @@ void setup() {
     WiFiConfig.onFailure  = []() { red(); }
     WiFiConfig.onWaitLoop = []() { blue(); return 30; }  // delay 30 ms
     WiFiConfig.onPortalWaitLoop = []() { blink(); }
+
+    String host = WiFiConfig.string( "server_host", "default.example.org");
+    int    port = WiFiConfig.integer("server_port", 0, 65535, 443);
+
     WiFiConfig.connect(true, 30);
 }
 ```
@@ -102,3 +106,23 @@ Calls the following callbacks:
 * WiFiConfig.onPortalWaitLoop
 * WiFiConfig.onConfigSaved
 * WiFiConfig.onRestart
+
+## long WiFiConfig.integer(String name, [long min, long max,] [int init = 0, String label = name])
+## String WiFiConfig.string(String name, [unsigned int max_length,] [String init = "", String label = name])
+
+Configures a custom configurable option and returns the current value. When no
+value (or an empty string) is configured, the value given as `init` is returned.
+
+This method should be called *before* calling `.connect()` or `.portal()`.
+
+The `name` is used as the filename in the SPIFFS, and as an HTML form element
+name, and must be valid in both of those contexts. Any given `name` should only
+be used once!
+
+Optionally, `label` can be specified as a descriptive text to use on the
+configuration portal.
+
+Some restrictions for the values can be given. Note that these limitations are
+implemented on the client side, and may not be respected by browsers. For
+integers, a range can be specified by supplying both `min` and `max`. For
+strings, a maximum length can be specified as `max_length`.
