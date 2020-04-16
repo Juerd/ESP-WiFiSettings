@@ -1,6 +1,30 @@
 # WiFi configuration manager for the ESP32 platform in the Arduino Framework
 
-## Minimal usage
+## Description
+
+This is a very simple, and somewhat naive, WiFi configuration manager for
+ESP32 programs written in the Arduino framework. It will allow you to
+configure your WiFi network name (SSID) and password via a captive portal:
+the ESP32 becomes an access point with a web based configuration page.
+
+It was written for ease of use, not for extended functionality. For example,
+restarting the microcontroller is the only way to leave the configuration
+portal. A button to restart is provided in the web interface.
+
+The library generates a random password to protect the portal with, but
+it's only secured if you choose to do so by checking a checkbox. Of course,
+the user can also pick their own password. "Hard coding" the password in
+your program is a bad practice, and not supported.
+
+The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
+that are dumped in the root directory of the filesystem. Debug output
+(including the password to the configuration portal) is written to `Serial`.
+
+Only automatic IP address assignment (DHCP) is supported.
+
+## Examples
+
+### Minimal usage
 
 ```
 #include <SPIFFS.h>
@@ -18,7 +42,7 @@ void loop() {
 }
 ```
 
-## Example with callbacks and custom variables
+### Example with callbacks and custom variables
 
 ```
 void setup() {
@@ -38,7 +62,7 @@ void setup() {
 }
 ```
 
-## Example with ArduinoOTA via WiFiConfig with the same password
+### Example with ArduinoOTA via WiFiConfig with the same password
 
 ```
 #include <ArduinoOTA.h>
@@ -71,28 +95,6 @@ void loop() {
     ...
 }
 ```
-
-## Description
-
-This is a very simple, and somewhat naive, WiFi configuration manager for
-ESP32 programs written in the Arduino framework. It will allow you to
-configure your WiFi network name (SSID) and password via a captive portal:
-the ESP32 becomes an access point with a web based configuration page.
-
-It was written for ease of use, not for extended functionality. For example,
-restarting the microcontroller is the only way to leave the configuration
-portal. A button to restart is provided in the web interface.
-
-The library generates a random password to protect the portal with, but
-it's only secured if you choose to do so by checking a checkbox. Of course,
-the user can also pick their own password. "Hard coding" the password in
-your program is a bad practice, and not supported.
-
-The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
-that are dumped in the root directory of the filesystem. Debug output
-(including the password to the configuration portal) is written to `Serial`.
-
-Only automatic IP address assignment (DHCP) is supported.
 
 ## Reference
 
