@@ -54,7 +54,7 @@ Only automatic IP address assignment (DHCP) is supported.
 
 ## Reference
 
-### String WiFi.hostname
+### String WiFiConfig.hostname
 
 Name to use as the hostname and SSID for the access point.
 
@@ -64,7 +64,7 @@ address, in reverse byte order.
 
 The password for the access point can be set in the configuration portal.
 
-### bool WiFi.connect(bool portal = true, int wait_seconds = 30)
+### bool WiFiConfig.connect(bool portal = true, int wait_seconds = 30)
 
 If no WiFi network is configured yet, starts the configuration portal.
 In other cases, it will attempt to connect to the network, and wait until
@@ -85,13 +85,13 @@ Calls the following callbacks:
 * WiFiConfig.onSuccess
 * WiFiConfig.onFailure
 
-### void WiFi.portal()
+### void WiFiConfig.portal()
 
 Disconnects any active WiFi and turns the ESP32 into a captive portal with a
 DNS server that works on every hostname.
 
-Normally, this method is called by `WiFi.connect()`. To allow reconfiguration
-after the initial configuration, you could call `WiFi.portal()` manually, for
+Normally, this method is called by `.connect()`. To allow reconfiguration
+after the initial configuration, you could call `.portal()` manually, for
 example when a button is pressed during startup.
 
 This method never ends. A restart is required to resume normal operation.
@@ -102,4 +102,3 @@ Calls the following callbacks:
 * WiFiConfig.onPortalWaitLoop
 * WiFiConfig.onConfigSaved
 * WiFiConfig.onRestart
-
