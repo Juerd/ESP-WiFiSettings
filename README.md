@@ -66,7 +66,7 @@ void setup() {
 }
 
 void loop() {
-    ArduinoOTA.handle();
+    ArduinoOTA.handle();  // if you also want the OTA during regular execution
 
     ...
 }
