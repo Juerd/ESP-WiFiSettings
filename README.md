@@ -8,7 +8,7 @@
 
 void setup() {
     Serial.begin(115200);
-    SPIFFS.begin(true);  // Will fail to mount and then format, on first run
+    SPIFFS.begin(true);  // On first run, will format after failing to mount
 
     WiFiConfig.connect();
 }
@@ -19,7 +19,7 @@ void setup() {
 ```
 void setup() {
     Serial.begin(115200);
-    SPIFFS.begin(true);  // Will fail to mount and then format, on first run
+    SPIFFS.begin(true);  // On first run, will format after failing to mount
 
     // Note that these examples call functions that you probably don't have.
     WiFiConfig.onSuccess  = []() { green(); }
