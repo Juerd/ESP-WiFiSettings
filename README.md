@@ -12,6 +12,10 @@ void setup() {
 
     WiFiConfig.connect();
 }
+
+void loop() {
+    ...
+}
 ```
 
 ## Example with callbacks and custom variables
@@ -31,6 +35,40 @@ void setup() {
     int    port = WiFiConfig.integer("server_port", 0, 65535, 443);
 
     WiFiConfig.connect(true, 30);
+}
+```
+
+## Example with ArduinoOTA via WiFiConfig with the same password
+
+```
+#include <ArduinoOTA.h>
+...
+
+void setup_ota() {
+    ArduinoOTA.setHostname(WiFiConfig.hostname.c_str());
+    ArduinoOTA.setPassword(WiFiConfig.password.c_str());
+    ArduinoOTA.begin();
+}
+
+void setup() {
+    Serial.begin(115200);
+    SPIFFS.begin(true);  // On first run, will format after failing to mount
+
+    WiFiConfig.onPortal = []() {
+        setup_ota();
+    };
+    WiFiConfig.onPortalWaitLoop = []() {
+        ArduinoOTA.handle();
+    };
+    WiFiConfig.connect();
+
+    setup_ota();  // if you also want the OTA during regular execution
+}
+
+void loop() {
+    ArduinoOTA.handle();
+
+    ...
 }
 ```
 
