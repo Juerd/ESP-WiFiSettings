@@ -119,6 +119,12 @@ The `name` is used as the filename in the SPIFFS, and as an HTML form element
 name, and must be valid in both of those contexts. Any given `name` should only
 be used once!
 
+It is strongly suggested to include the name of a project in the `name` of the
+configuration option, if it is specific to that project. For example, an MQTT
+topic is probably specific to the application, while the server hostname
+is likely to be shared among several projects. This helps when the ESP32 is
+later reused for different applications.
+
 Optionally, `label` can be specified as a descriptive text to use on the
 configuration portal.
 
