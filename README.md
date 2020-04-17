@@ -13,8 +13,7 @@ portal. A button to restart is provided in the web interface.
 
 The library generates a random password to protect the portal with, but
 it's only secured if you choose to do so by checking a checkbox. Of course,
-the user can also pick their own password. "Hard coding" the password in
-your program is a bad practice, and not supported.
+the user can configure pick their own password.
 
 The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
 that are dumped in the root directory of the filesystem. Debug output
@@ -98,17 +97,12 @@ void loop() {
 
 ## Reference
 
-### String WiFiSettings.hostname
+This library uses a singleton instance (object), `WiFiSettings`, and is not
+designed to be inherited from (subclassed), or to have multiple instances.
 
-Name to use as the hostname and SSID for the access point.
+### Functions
 
-By default, this is set to "esp32-123456" where 123456 is the hexadecimal
-representation of the device interface specific part of the ESP32's MAC
-address, in reverse byte order.
-
-The password for the access point can be set in the configuration portal.
-
-### bool WiFiSettings.connect(bool portal = true, int wait_seconds = 30)
+#### bool WiFiSettings.connect(bool portal = true, int wait_seconds = 30)
 
 If no WiFi network is configured yet, starts the configuration portal.
 In other cases, it will attempt to connect to the network, and wait until
@@ -129,7 +123,7 @@ Calls the following callbacks:
 * WiFiSettings.onSuccess
 * WiFiSettings.onFailure
 
-### void WiFiSettings.portal()
+#### void WiFiSettings.portal()
 
 Disconnects any active WiFi and turns the ESP32 into a captive portal with a
 DNS server that works on every hostname.
@@ -147,9 +141,9 @@ Calls the following callbacks:
 * WiFiSettings.onConfigSaved
 * WiFiSettings.onRestart
 
-### long WiFiSettings.integer(String name, [long min, long max,] int init = 0, String label = name)
-### String WiFiSettings.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)
-### bool WiFiSettings.checkbox(String name, bool init = false, String label = name)
+#### long WiFiSettings.integer(String name, [long min, long max,] int init = 0, String label = name)
+#### String WiFiSettings.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)
+#### bool WiFiSettings.checkbox(String name, bool init = false, String label = name)
 
 Configures a custom configurable option and returns the current value. When no
 value (or an empty string) is configured, the value given as `init` is returned.
@@ -176,8 +170,64 @@ strings, a maximum length can be specified as `max_length`. A minimum string
 length can be set with `min_length`, effectively making the field mandatory:
 it can no longer be left empty to get the `init` value.
 
+### Variables
+
+Note: because of the way this library is designed, any assignment to the
+member variables should be done *before* calling any of the functions.
+
+#### String WiFiSettings.hostname
+
+Name to use as the hostname and SSID for the access point.
+
+By default, this is set to "esp32-123456" where 123456 is the hexadecimal
+representation of the device interface specific part of the ESP32's MAC
+address, in reverse byte order.
+
+#### String WiFiSettings.password
+
+This variable is used to protect the configuration portal's softAP. When no
+password is explicitly assigned before the first custom configuration parameter
+is defined (with `.string`, `.integer`, or `.checkbox`), a password will be
+automatically generated and can be configured by the user.
+
+It's strongly recommended to leave this variable untouched, and use the
+built-in password generation feature, and letting the user configure their own
+password, instead of "hard coding" a password.
+
+The password has no effect unless the portal is secured; see `.secure`.
+
+#### bool WiFiSettings.secure
+
+By setting this to `true`, before any custom configuration parameter is defined
+with `.string`, `.integer`, or `.checkbox`, secure mode will be forced, instead
+of the default behavior, which is to initially use an insecure softAP and to
+let the user decide whether to secure it.
+
+When `.secure` is left in the default state, `false`, the user setting will be
+used.
+
+When forcing secure mode, it is still recommended to leave `.password` unset so
+that a password is automatically generated, if you have a way to communicate it
+to the user, for example with an LCD display, or
+`Serial.println(WiFiSettings.password);`. Having hard coded password literals
+in source code is generally considered a bad idea, because that makes it harder
+to share the code with others.
+
+#### WiFiSettings.on*
+
+The callback functions are mentioned in the respective functions that call them.
+
 ## History
 
 Note that this library was briefly named WiFiConfig, but was renamed to
 WiFiSettings because there was already another library called
 [WiFiConfig](https://github.com/snakeye/WifiConfig).
+
+## A note about Hyrum's Law
+
+It is said that *all observable behaviors of your system will be depended on by
+somebody*, and you are of course free to explore the source and use any
+unintended feature you may find to your advantage. Bear in mind, however, that
+depending on any behavior that is not documented here, is more likely to cause
+breakage when you install a newer version of this library. The author feels no
+obligation to keep backwards compatibility with undocumented features :)

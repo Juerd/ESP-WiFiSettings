@@ -318,13 +318,27 @@ void WiFiSettingsClass::begin() {
     // These things can't go in the constructor because the constructor runs
     // before SPIFFS.begin()
 
-    secure = checkbox("WiFiSettings-secure", false, "Protect the configuration portal with a WiFi password");
+    if (!secure) {
+        secure = checkbox(
+            "WiFiSettings-secure",
+            false,
+            "Protect the configuration portal with a WiFi password"
+        );
+    }
 
-    password = string("WiFiSettings-password", 8, 63, "", "WiFi password for the configuration portal");
-    if (password == "") {
-        // With regular 'init' semantics, the password would be changed all the time.
-        password = pwgen();
-        params.back()->store(password);
+    if (!password.length()) {
+        password = string(
+            "WiFiSettings-password",
+            8, 63,
+            "",
+            "WiFi password for the configuration portal"
+        );
+        if (password == "") {
+            // With regular 'init' semantics, the password would be changed
+            // all the time.
+            password = pwgen();
+            params.back()->store(password);
+        }
     }
 }
 
