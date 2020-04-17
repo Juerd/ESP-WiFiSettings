@@ -9,20 +9,20 @@
          * [ArduinoOTA via WiFiSettings with the same password](#arduinoota-via-wifisettings-with-the-same-password)
       * [Reference](#reference)
          * [Functions](#functions)
-            * [bool WiFiSettings.connect(bool portal = true, int wait_seconds = 30)](#bool-wifisettingsconnectbool-portal--true-int-wait_seconds--30)
-            * [void WiFiSettings.portal()](#void-wifisettingsportal)
-            * [long WiFiSettings.integer(String name, [long min, long max,] int init = 0, String label = name)](#long-wifisettingsintegerstring-name-long-min-long-max-int-init--0-string-label--name)
-            * [String WiFiSettings.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)](#string-wifisettingsstringstring-name-unsigned-int-min_length-unsigned-int-max_length-string-init---string-label--name)
-            * [bool WiFiSettings.checkbox(String name, bool init = false, String label = name)](#bool-wifisettingscheckboxstring-name-bool-init--false-string-label--name)
+            * [WiFiSettings.connect([...])](#wifisettingsconnect)
+            * [WiFiSettings.portal()](#wifisettingsportal)
+            * [WiFiSettings.integer(...)](#wifisettingsinteger)
+            * [WiFiSettings.string(...)](#wifisettingsstring)
+            * [WiFiSettings.checkbox(...)](#wifisettingscheckbox)
          * [Variables](#variables)
-            * [String WiFiSettings.hostname](#string-wifisettingshostname)
-            * [String WiFiSettings.password](#string-wifisettingspassword)
-            * [bool WiFiSettings.secure](#bool-wifisettingssecure)
+            * [WiFiSettings.hostname](#wifisettingshostname)
+            * [WiFiSettings.password](#wifisettingspassword)
+            * [WiFiSettings.secure](#wifisettingssecure)
             * [WiFiSettings.on*](#wifisettingson)
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Fri 17 Apr 2020 08:47:51 PM CEST -->
+<!-- Added by: juerd, at: Fri 17 Apr 2020 08:58:58 PM CEST -->
 
 <!--te-->
 
@@ -128,7 +128,9 @@ designed to be inherited from (subclassed), or to have multiple instances.
 
 ### Functions
 
-#### bool WiFiSettings.connect(bool portal = true, int wait_seconds = 30)
+#### WiFiSettings.connect([...])
+
+> `bool connect(bool portal = true, int wait_seconds = 30)`
 
 If no WiFi network is configured yet, starts the configuration portal.
 In other cases, it will attempt to connect to the network, and wait until
@@ -149,16 +151,18 @@ Calls the following callbacks:
 * WiFiSettings.onSuccess
 * WiFiSettings.onFailure
 
-#### void WiFiSettings.portal()
+#### WiFiSettings.portal()
+
+> `void portal()`
 
 Disconnects any active WiFi and turns the ESP32 into a captive portal with a
 DNS server that works on every hostname.
 
-Normally, this method is called by `.connect()`. To allow reconfiguration
+Normally, this function is called by `.connect()`. To allow reconfiguration
 after the initial configuration, you could call `.portal()` manually, for
 example when a button is pressed during startup.
 
-This method never ends. A restart is required to resume normal operation.
+This function never ends. A restart is required to resume normal operation.
 
 Calls the following callbacks:
 
@@ -167,14 +171,20 @@ Calls the following callbacks:
 * WiFiSettings.onConfigSaved
 * WiFiSettings.onRestart
 
-#### long WiFiSettings.integer(String name, [long min, long max,] int init = 0, String label = name)
-#### String WiFiSettings.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)
-#### bool WiFiSettings.checkbox(String name, bool init = false, String label = name)
+#### WiFiSettings.integer(...)
+#### WiFiSettings.string(...)
+#### WiFiSettings.checkbox(...)
+
+> `int integer(String name, [long min, long max,] int init = 0, String label = name)`
+
+> `String string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)`
+
+> `bool checkbox(String name, bool init = false, String label = name)`
 
 Configures a custom configurable option and returns the current value. When no
 value (or an empty string) is configured, the value given as `init` is returned.
 
-This method should be called *before* calling `.connect()` or `.portal()`.
+These functions should be called *before* calling `.connect()` or `.portal()`.
 
 The `name` is used as the filename in the SPIFFS, and as an HTML form element
 name, and must be valid in both of those contexts. Any given `name` should only
@@ -201,7 +211,9 @@ it can no longer be left empty to get the `init` value.
 Note: because of the way this library is designed, any assignment to the
 member variables should be done *before* calling any of the functions.
 
-#### String WiFiSettings.hostname
+#### WiFiSettings.hostname
+
+> String
 
 Name to use as the hostname and SSID for the access point.
 
@@ -209,7 +221,9 @@ By default, this is set to "esp32-123456" where 123456 is the hexadecimal
 representation of the device interface specific part of the ESP32's MAC
 address, in reverse byte order.
 
-#### String WiFiSettings.password
+#### WiFiSettings.password
+
+> String
 
 This variable is used to protect the configuration portal's softAP. When no
 password is explicitly assigned before the first custom configuration parameter
@@ -222,7 +236,9 @@ password, instead of "hard coding" a password.
 
 The password has no effect unless the portal is secured; see `.secure`.
 
-#### bool WiFiSettings.secure
+#### WiFiSettings.secure
+
+> bool
 
 By setting this to `true`, before any custom configuration parameter is defined
 with `.string`, `.integer`, or `.checkbox`, secure mode will be forced, instead
