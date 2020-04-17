@@ -28,13 +28,13 @@ Only automatic IP address assignment (DHCP) is supported.
 
 ```
 #include <SPIFFS.h>
-#include <WiFiConfig.h>
+#include <WiFiSettings.h>
 
 void setup() {
     Serial.begin(115200);
     SPIFFS.begin(true);  // On first run, will format after failing to mount
 
-    WiFiConfig.connect();
+    WiFiSettings.connect();
 }
 
 void loop() {
@@ -50,27 +50,27 @@ void setup() {
     SPIFFS.begin(true);  // On first run, will format after failing to mount
 
     // Note that these examples call functions that you probably don't have.
-    WiFiConfig.onSuccess  = []() { green(); }
-    WiFiConfig.onFailure  = []() { red(); }
-    WiFiConfig.onWaitLoop = []() { blue(); return 30; }  // delay 30 ms
-    WiFiConfig.onPortalWaitLoop = []() { blink(); }
+    WiFiSettings.onSuccess  = []() { green(); }
+    WiFiSettings.onFailure  = []() { red(); }
+    WiFiSettings.onWaitLoop = []() { blue(); return 30; }  // delay 30 ms
+    WiFiSettings.onPortalWaitLoop = []() { blink(); }
 
-    String host = WiFiConfig.string( "server_host", "default.example.org");
-    int    port = WiFiConfig.integer("server_port", 0, 65535, 443);
+    String host = WiFiSettings.string( "server_host", "default.example.org");
+    int    port = WiFiSettings.integer("server_port", 0, 65535, 443);
 
-    WiFiConfig.connect(true, 30);
+    WiFiSettings.connect(true, 30);
 }
 ```
 
-### Example with ArduinoOTA via WiFiConfig with the same password
+### Example with ArduinoOTA via WiFiSettings with the same password
 
 ```
 #include <ArduinoOTA.h>
 ...
 
 void setup_ota() {
-    ArduinoOTA.setHostname(WiFiConfig.hostname.c_str());
-    ArduinoOTA.setPassword(WiFiConfig.password.c_str());
+    ArduinoOTA.setHostname(WiFiSettings.hostname.c_str());
+    ArduinoOTA.setPassword(WiFiSettings.password.c_str());
     ArduinoOTA.begin();
 }
 
@@ -78,13 +78,13 @@ void setup() {
     Serial.begin(115200);
     SPIFFS.begin(true);  // On first run, will format after failing to mount
 
-    WiFiConfig.onPortal = []() {
+    WiFiSettings.onPortal = []() {
         setup_ota();
     };
-    WiFiConfig.onPortalWaitLoop = []() {
+    WiFiSettings.onPortalWaitLoop = []() {
         ArduinoOTA.handle();
     };
-    WiFiConfig.connect();
+    WiFiSettings.connect();
 
     setup_ota();  // if you also want the OTA during regular execution
 }
@@ -98,7 +98,7 @@ void loop() {
 
 ## Reference
 
-### String WiFiConfig.hostname
+### String WiFiSettings.hostname
 
 Name to use as the hostname and SSID for the access point.
 
@@ -108,7 +108,7 @@ address, in reverse byte order.
 
 The password for the access point can be set in the configuration portal.
 
-### bool WiFiConfig.connect(bool portal = true, int wait_seconds = 30)
+### bool WiFiSettings.connect(bool portal = true, int wait_seconds = 30)
 
 If no WiFi network is configured yet, starts the configuration portal.
 In other cases, it will attempt to connect to the network, and wait until
@@ -124,12 +124,12 @@ the value of `portal` is ignored.
 
 Calls the following callbacks:
 
-* WiFiConfig.onConnect
-* WiFiConfig.onWaitLoop -> int (milliseconds to wait)
-* WiFiConfig.onSuccess
-* WiFiConfig.onFailure
+* WiFiSettings.onConnect
+* WiFiSettings.onWaitLoop -> int (milliseconds to wait)
+* WiFiSettings.onSuccess
+* WiFiSettings.onFailure
 
-### void WiFiConfig.portal()
+### void WiFiSettings.portal()
 
 Disconnects any active WiFi and turns the ESP32 into a captive portal with a
 DNS server that works on every hostname.
@@ -142,14 +142,14 @@ This method never ends. A restart is required to resume normal operation.
 
 Calls the following callbacks:
 
-* WiFiConfig.onPortal
-* WiFiConfig.onPortalWaitLoop
-* WiFiConfig.onConfigSaved
-* WiFiConfig.onRestart
+* WiFiSettings.onPortal
+* WiFiSettings.onPortalWaitLoop
+* WiFiSettings.onConfigSaved
+* WiFiSettings.onRestart
 
-### long WiFiConfig.integer(String name, [long min, long max,] int init = 0, String label = name)
-### String WiFiConfig.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)
-### bool WiFiConfig.checkbox(String name, bool init = false, String label = name)
+### long WiFiSettings.integer(String name, [long min, long max,] int init = 0, String label = name)
+### String WiFiSettings.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)
+### bool WiFiSettings.checkbox(String name, bool init = false, String label = name)
 
 Configures a custom configurable option and returns the current value. When no
 value (or an empty string) is configured, the value given as `init` is returned.
@@ -175,3 +175,9 @@ integers, a range can be specified by supplying both `min` and `max`. For
 strings, a maximum length can be specified as `max_length`. A minimum string
 length can be set with `min_length`, effectively making the field mandatory:
 it can no longer be left empty to get the `init` value.
+
+## History
+
+Note that this library was briefly named WiFiConfig, but was renamed to
+WiFiSettings because there was already another library called
+[WiFiConfig](https://github.com/snakeye/WifiConfig).

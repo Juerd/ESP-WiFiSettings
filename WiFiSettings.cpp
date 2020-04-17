@@ -1,4 +1,4 @@
-#include <WiFiConfig.h>
+#include <WiFiSettings.h>
 #include <Arduino.h>
 #include <SPIFFS.h>
 #include <WiFi.h>
@@ -46,7 +46,7 @@ String html_entities(String raw) {
     return r;
 }
 
-struct WiFiConfigParameter {
+struct WiFiSettingsParameter {
     String name;
     String label;
     String value;
@@ -60,7 +60,7 @@ struct WiFiConfigParameter {
     virtual String html() = 0;
 };
 
-struct WiFiConfigString : WiFiConfigParameter {
+struct WiFiSettingsString : WiFiSettingsParameter {
     String html() {
         String h = "<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' minlength={min} maxlength={max}></label>";
         h.replace("{name}", html_entities(name));
@@ -73,7 +73,7 @@ struct WiFiConfigString : WiFiConfigParameter {
     }
 };
 
-struct WiFiConfigInt : WiFiConfigParameter {
+struct WiFiSettingsInt : WiFiSettingsParameter {
     String html() {
         String h = "<label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>";
         h.replace("{name}", html_entities(name));
@@ -86,7 +86,7 @@ struct WiFiConfigInt : WiFiConfigParameter {
     }
 };
 
-struct WiFiConfigBool : WiFiConfigParameter {
+struct WiFiSettingsBool : WiFiSettingsParameter {
     String html() {
         String h = "<label><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>";
         h.replace("{name}", html_entities(name));
@@ -101,11 +101,11 @@ struct WiFiConfigBool : WiFiConfigParameter {
     }
 };
 
-struct std::vector<WiFiConfigParameter*> params;
+struct std::vector<WiFiSettingsParameter*> params;
 
-String WiFiConfigClass::string(String name, String init, String label) {
+String WiFiSettingsClass::string(String name, String init, String label) {
     begin();
-    struct WiFiConfigString* x = new WiFiConfigString();
+    struct WiFiSettingsString* x = new WiFiSettingsString();
     x->name = name;
     x->label = label.length() ? label : name;
     x->init = init;
@@ -115,22 +115,22 @@ String WiFiConfigClass::string(String name, String init, String label) {
     return x->value.length() ? x->value : x->init;
 }
 
-String WiFiConfigClass::string(String name, unsigned int max_length, String init, String label) {
+String WiFiSettingsClass::string(String name, unsigned int max_length, String init, String label) {
     String rv = string(name, init, label);
     params.back()->max = max_length;
     return rv;
 }
 
-String WiFiConfigClass::string(String name, unsigned int min_length, unsigned int max_length, String init, String label) {
+String WiFiSettingsClass::string(String name, unsigned int min_length, unsigned int max_length, String init, String label) {
     String rv = string(name, init, label);
     params.back()->min = min_length;
     params.back()->max = max_length;
     return rv;
 }
 
-long WiFiConfigClass::integer(String name,  long init, String label) {
+long WiFiSettingsClass::integer(String name,  long init, String label) {
     begin();
-    struct WiFiConfigInt* x = new WiFiConfigInt();
+    struct WiFiSettingsInt* x = new WiFiSettingsInt();
     x->name = name;
     x->label = label.length() ? label : name;
     x->init = init;
@@ -140,16 +140,16 @@ long WiFiConfigClass::integer(String name,  long init, String label) {
     return (x->value.length() ? x->value : x->init).toInt();
 }
 
-long WiFiConfigClass::integer(String name, long min, long max,  long init, String label) {
+long WiFiSettingsClass::integer(String name, long min, long max,  long init, String label) {
     long rv = integer(name, init, label);
     params.back()->min = min;
     params.back()->max = max;
     return rv;
 }
 
-bool WiFiConfigClass::checkbox(String name, bool init, String label) {
+bool WiFiSettingsClass::checkbox(String name, bool init, String label) {
     begin();
-    struct WiFiConfigBool* x = new WiFiConfigBool();
+    struct WiFiSettingsBool* x = new WiFiSettingsBool();
     x->name = name;
     x->label = label.length() ? label : name;
     x->init = String((int) init);
@@ -163,7 +163,7 @@ bool WiFiConfigClass::checkbox(String name, bool init, String label) {
     return x->value.toInt();
 }
 
-void WiFiConfigClass::portal() {
+void WiFiSettingsClass::portal() {
     static WebServer http(80);
     static DNSServer dns;
     static int num_networks = -1;
@@ -279,7 +279,7 @@ void WiFiConfigClass::portal() {
     }
 }
 
-bool WiFiConfigClass::connect(bool portal, int wait_seconds) {
+bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     begin();
 
     String ssid = slurp("/wifi-ssid");
@@ -311,16 +311,16 @@ bool WiFiConfigClass::connect(bool portal, int wait_seconds) {
     return true;
 }
 
-void WiFiConfigClass::begin() {
+void WiFiSettingsClass::begin() {
     if (begun) return;
     begun = true;
 
     // These things can't go in the constructor because the constructor runs
     // before SPIFFS.begin()
 
-    secure = checkbox("WiFiConfig-secure", false, "Protect the configuration portal with a WiFi password");
+    secure = checkbox("WiFiSettings-secure", false, "Protect the configuration portal with a WiFi password");
 
-    password = string("WiFiConfig-password", 8, 63, "", "WiFi password for the configuration portal");
+    password = string("WiFiSettings-password", 8, 63, "", "WiFi password for the configuration portal");
     if (password == "") {
         // With regular 'init' semantics, the password would be changed all the time.
         password = pwgen();
@@ -328,8 +328,8 @@ void WiFiConfigClass::begin() {
     }
 }
 
-WiFiConfigClass::WiFiConfigClass() {
+WiFiSettingsClass::WiFiSettingsClass() {
     hostname = Sprintf("esp32-%06" PRIx64, ESP.getEfuseMac() >> 24);
 }
 
-WiFiConfigClass WiFiConfig;
+WiFiSettingsClass WiFiSettings;

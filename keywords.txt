@@ -1,4 +1,4 @@
-WiFiConfig	KEYWORD1
+WiFiSettings	KEYWORD1
 connect	KEYWORD2
 portal	KEYWORD2
 hostname	KEYWORD2

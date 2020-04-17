@@ -1,10 +1,10 @@
 {
-    "name": "esp32-WiFiConfig",
-    "version": "1.3.0",
+    "name": "esp32-WiFiSettings",
+    "version": "2.0.0",
     "keywords": "esp32, wifi",
     "description": "WiFi Manager for the ESP32 Arduino environment", 
     "authors": { "name": "Juerd Waalboer" },
-    "repository": { "type": "git", "url": "https://github.com/Juerd/esp32-WiFiConfig" },
+    "repository": { "type": "git", "url": "https://github.com/Juerd/esp32-WiFiSettings" },
     "frameworks": "arduino",
     "platforms": "espressif32"
 }
