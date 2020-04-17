@@ -1,5 +1,31 @@
 # WiFi configuration manager for the ESP32 platform in the Arduino Framework
 
+<!--ts-->
+   * [WiFi configuration manager for the ESP32 platform in the Arduino Framework](#wifi-configuration-manager-for-the-esp32-platform-in-the-arduino-framework)
+      * [Description](#description)
+      * [Examples](#examples)
+         * [Minimal usage](#minimal-usage)
+         * [Example with callbacks and custom variables](#example-with-callbacks-and-custom-variables)
+         * [Example with ArduinoOTA via WiFiSettings with the same password](#example-with-arduinoota-via-wifisettings-with-the-same-password)
+      * [Reference](#reference)
+         * [Functions](#functions)
+            * [bool WiFiSettings.connect(bool portal = true, int wait_seconds = 30)](#bool-wifisettingsconnectbool-portal--true-int-wait_seconds--30)
+            * [void WiFiSettings.portal()](#void-wifisettingsportal)
+            * [long WiFiSettings.integer(String name, [long min, long max,] int init = 0, String label = name)](#long-wifisettingsintegerstring-name-long-min-long-max-int-init--0-string-label--name)
+            * [String WiFiSettings.string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)](#string-wifisettingsstringstring-name-unsigned-int-min_length-unsigned-int-max_length-string-init---string-label--name)
+            * [bool WiFiSettings.checkbox(String name, bool init = false, String label = name)](#bool-wifisettingscheckboxstring-name-bool-init--false-string-label--name)
+         * [Variables](#variables)
+            * [String WiFiSettings.hostname](#string-wifisettingshostname)
+            * [String WiFiSettings.password](#string-wifisettingspassword)
+            * [bool WiFiSettings.secure](#bool-wifisettingssecure)
+            * [WiFiSettings.on*](#wifisettingson)
+      * [History](#history)
+      * [A note about Hyrum's Law](#a-note-about-hyrums-law)
+
+<!-- Added by: juerd, at: Fri 17 Apr 2020 06:57:32 PM CEST -->
+
+<!--te-->
+
 ## Description
 
 This is a very simple, and somewhat naive, WiFi configuration manager for
