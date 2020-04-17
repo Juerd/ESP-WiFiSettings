@@ -5,8 +5,8 @@
       * [Description](#description)
       * [Examples](#examples)
          * [Minimal usage](#minimal-usage)
-         * [Example with callbacks and custom variables](#example-with-callbacks-and-custom-variables)
-         * [Example with ArduinoOTA via WiFiSettings with the same password](#example-with-arduinoota-via-wifisettings-with-the-same-password)
+         * [Callbacks and custom variables](#callbacks-and-custom-variables)
+         * [ArduinoOTA via WiFiSettings with the same password](#arduinoota-via-wifisettings-with-the-same-password)
       * [Reference](#reference)
          * [Functions](#functions)
             * [bool WiFiSettings.connect(bool portal = true, int wait_seconds = 30)](#bool-wifisettingsconnectbool-portal--true-int-wait_seconds--30)
@@ -22,7 +22,7 @@
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Fri 17 Apr 2020 06:57:32 PM CEST -->
+<!-- Added by: juerd, at: Fri 17 Apr 2020 08:47:51 PM CEST -->
 
 <!--te-->
 
@@ -67,7 +67,7 @@ void loop() {
 }
 ```
 
-### Example with callbacks and custom variables
+### Callbacks and custom variables
 
 ```
 void setup() {
@@ -87,7 +87,7 @@ void setup() {
 }
 ```
 
-### Example with ArduinoOTA via WiFiSettings with the same password
+### ArduinoOTA via WiFiSettings with the same password
 
 ```
 #include <ArduinoOTA.h>
