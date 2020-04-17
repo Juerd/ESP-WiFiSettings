@@ -50,10 +50,10 @@ void setup() {
     SPIFFS.begin(true);  // On first run, will format after failing to mount
 
     // Note that these examples call functions that you probably don't have.
-    WiFiSettings.onSuccess  = []() { green(); }
-    WiFiSettings.onFailure  = []() { red(); }
-    WiFiSettings.onWaitLoop = []() { blue(); return 30; }  // delay 30 ms
-    WiFiSettings.onPortalWaitLoop = []() { blink(); }
+    WiFiSettings.onSuccess  = []() { green(); };
+    WiFiSettings.onFailure  = []() { red(); };
+    WiFiSettings.onWaitLoop = []() { blue(); return 30; };  // delay 30 ms
+    WiFiSettings.onPortalWaitLoop = []() { blink(); };
 
     String host = WiFiSettings.string( "server_host", "default.example.org");
     int    port = WiFiSettings.integer("server_port", 0, 65535, 443);
