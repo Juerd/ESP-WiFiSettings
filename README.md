@@ -51,7 +51,7 @@ Only automatic IP address assignment (DHCP) is supported.
 
 ### Minimal usage
 
-```
+```C++
 #include <SPIFFS.h>
 #include <WiFiSettings.h>
 
@@ -69,7 +69,7 @@ void loop() {
 
 ### Callbacks and custom variables
 
-```
+```C++
 void setup() {
     Serial.begin(115200);
     SPIFFS.begin(true);  // On first run, will format after failing to mount
@@ -89,7 +89,7 @@ void setup() {
 
 ### ArduinoOTA via WiFiSettings with the same password
 
-```
+```C++
 #include <ArduinoOTA.h>
 ...
 
@@ -130,7 +130,9 @@ designed to be inherited from (subclassed), or to have multiple instances.
 
 #### WiFiSettings.connect([...])
 
-> `bool connect(bool portal = true, int wait_seconds = 30)`
+```C++
+bool connect(bool portal = true, int wait_seconds = 30);
+```
 
 If no WiFi network is configured yet, starts the configuration portal.
 In other cases, it will attempt to connect to the network, and wait until
@@ -153,7 +155,9 @@ Calls the following callbacks:
 
 #### WiFiSettings.portal()
 
-> `void portal()`
+```C++
+void portal();
+```
 
 Disconnects any active WiFi and turns the ESP32 into a captive portal with a
 DNS server that works on every hostname.
@@ -175,11 +179,11 @@ Calls the following callbacks:
 #### WiFiSettings.string(...)
 #### WiFiSettings.checkbox(...)
 
-> `int integer(String name, [long min, long max,] int init = 0, String label = name)`
-
-> `String string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name)`
-
-> `bool checkbox(String name, bool init = false, String label = name)`
+```C++
+int integer(String name, [long min, long max,] int init = 0, String label = name);
+String string(String name, [[unsigned int min_length,] unsigned int max_length,] String init = "", String label = name);
+bool checkbox(String name, bool init = false, String label = name);
+```
 
 Configures a custom configurable option and returns the current value. When no
 value (or an empty string) is configured, the value given as `init` is returned.
@@ -213,7 +217,9 @@ member variables should be done *before* calling any of the functions.
 
 #### WiFiSettings.hostname
 
-> String
+```C++
+String
+```
 
 Name to use as the hostname and SSID for the access point.
 
@@ -223,7 +229,9 @@ address, in reverse byte order.
 
 #### WiFiSettings.password
 
-> String
+```C++
+String
+```
 
 This variable is used to protect the configuration portal's softAP. When no
 password is explicitly assigned before the first custom configuration parameter
@@ -238,7 +246,9 @@ The password has no effect unless the portal is secured; see `.secure`.
 
 #### WiFiSettings.secure
 
-> bool
+```C++
+bool
+```
 
 By setting this to `true`, before any custom configuration parameter is defined
 with `.string`, `.integer`, or `.checkbox`, secure mode will be forced, instead
