@@ -208,8 +208,8 @@ void WiFiSettingsClass::portal() {
         String current = slurp("/wifi-ssid");
         String pw = slurp("/wifi-password");
 
-        html.replace("{hostname}",    hostname);
-        html.replace("{ssid}",        current.length() ? html_entities(current) : "(not set)");
+        html.replace("{hostname}", hostname);
+        html.replace("{ssid}", current.length() ? html_entities(current) : "(not set)");
 
         String options;
         if (num_networks < 0) num_networks = WiFi.scanNetworks();
