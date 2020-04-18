@@ -36,7 +36,7 @@ void setup() {
     };
 
     // Callback functions do not have to be lambda's, e.g.
-    // WiFiSettings.onPortalWaitLoop = []() { blink(); };
+    // WiFiSettings.onPortalWaitLoop = blink;
 
     // Define custom settings saved by WifiSettings
     // These will return the default if nothing was set before
