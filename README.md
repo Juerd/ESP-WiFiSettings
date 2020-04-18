@@ -240,7 +240,8 @@ to share the code with others.
 
 #### WiFiSettings.on*
 
-The callback functions are mentioned in the respective functions that call them.
+The callback functions are mentioned in the documentation for the respective
+functions that call them.
 
 ## History
 
