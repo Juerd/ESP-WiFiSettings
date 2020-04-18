@@ -12,20 +12,27 @@
 #include <WiFi.h>
 #include <WiFiSettings.h>
 
+// Status LED
+const uint32_t LED_PIN = 2;
+#define LED_ON  LOW
+#define LED_OFF HIGH
+
 void setup() {
     Serial.begin(115200);
     SPIFFS.begin(true);  // Will format on the first run after failing to mount
 
+    pinMode(LED_PIN, OUTPUT);
+
     // Set custom callback functions
     WiFiSettings.onSuccess  = []() {
-        Serial.println("Successfully connected to WiFi");
+        digitalWrite(LED_PIN, LED_ON); // Turn LED on
     };
     WiFiSettings.onFailure  = []() {
-        Serial.println("Failed to connect to WiFi!");
+        digitalWrite(LED_PIN, LED_OFF); // Turn LED off
     };
     WiFiSettings.onWaitLoop = []() {
-        Serial.print(".");
-        return 500; // Delay next function call by 1000ms
+        digitalWrite(LED_PIN, !digitalRead(LED_PIN)); // Toggle LED
+        return 500; // Delay next function call by 500ms
     };
 
     // Callback functions do not have to be lambda's, e.g.
