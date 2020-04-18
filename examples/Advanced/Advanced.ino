@@ -41,7 +41,6 @@ void setup() {
     // Define custom settings saved by WifiSettings
     // These will return the default if nothing was set before
     String host = WiFiSettings.string( "server_host", "default.example.org");
-    // Integers have a min, max, and default
     int    port = WiFiSettings.integer("server_port", 0, 65535, 443);
 
     // Connect to WiFi with a timeout of 30 seconds
