@@ -216,7 +216,7 @@ void WiFiSettingsClass::portal() {
             "<hr>"
             "<h2>Configuration</h2>"
             "<form method=post>"
-                "<label>SSID:<br>";
+                "<label>SSID:<br><b class=s>Scanning for WiFi networks...</b>";
         html.replace("{hostname}", hostname);
         html.replace("{ssid}", current.length() ? html_entities(current) : "(not set)");
         http.sendContent(html);
@@ -224,7 +224,10 @@ void WiFiSettingsClass::portal() {
         if (num_networks < 0) num_networks = WiFi.scanNetworks();
         Serial.printf("%d WiFi networks found.\n", num_networks);
 
-        http.sendContent("<select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">");
+        http.sendContent(
+            "<style>.s{display:none}</style>"   // hide "scanning"
+            "<select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">"
+        );
 
         bool found = false;
         for (int i = 0; i < num_networks; i++) {
