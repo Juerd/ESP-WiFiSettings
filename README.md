@@ -6,7 +6,7 @@
       * [Examples](#examples)
          * [Minimal usage](#minimal-usage)
          * [Callbacks and custom variables](#callbacks-and-custom-variables)
-         * [ArduinoOTA via WiFiSettings with the same password](#arduinoota-via-wifisettings-with-the-same-password)
+         * [Other examples](#other-examples)
       * [Reference](#reference)
          * [Functions](#functions)
             * [WiFiSettings.connect([...])](#wifisettingsconnect)
@@ -22,7 +22,7 @@
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Fri 17 Apr 2020 08:58:58 PM CEST -->
+<!-- Added by: juerd, at: Sat 18 Apr 2020 06:08:55 PM CEST -->
 
 <!--te-->
 
@@ -87,39 +87,12 @@ void setup() {
 }
 ```
 
-### ArduinoOTA via WiFiSettings with the same password
+### Other examples
 
-```C++
-#include <ArduinoOTA.h>
-...
-
-void setup_ota() {
-    ArduinoOTA.setHostname(WiFiSettings.hostname.c_str());
-    ArduinoOTA.setPassword(WiFiSettings.password.c_str());
-    ArduinoOTA.begin();
-}
-
-void setup() {
-    Serial.begin(115200);
-    SPIFFS.begin(true);  // On first run, will format after failing to mount
-
-    WiFiSettings.onPortal = []() {
-        setup_ota();
-    };
-    WiFiSettings.onPortalWaitLoop = []() {
-        ArduinoOTA.handle();
-    };
-    WiFiSettings.connect();
-
-    setup_ota();  // if you also want the OTA during regular execution
-}
-
-void loop() {
-    ArduinoOTA.handle();  // if you also want the OTA during regular execution
-
-    ...
-}
-```
+* The [ArduinoOTA example](examples/ArduinoOTA/ArduinoOTA.ino) shows how to
+enable over-the-air uploads in the WiFiSettings configuration portal. If you
+use the password from WiFiSettings as your OTA password, you no longer have
+to hard code it!
 
 ## Reference
 
