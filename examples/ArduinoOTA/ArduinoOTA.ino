@@ -34,13 +34,13 @@ void setup() {
         ArduinoOTA.handle();
     };
 
-    Serial.print("Password: ");
-    Serial.println(WiFiSettings.password);
-
     // Use stored credentials to connect to your WiFi access point.
     // If no credentials are stored or if the access point is out of reach,
     // an access point will be started with a captive portal to configure WiFi.
     WiFiSettings.connect();
+
+    Serial.print("Password: ");
+    Serial.println(WiFiSettings.password);
 
     setup_ota();  // If you also want the OTA during regular execution
 }
