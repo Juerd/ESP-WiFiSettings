@@ -13,12 +13,12 @@ class WiFiSettingsClass {
         void begin();
         bool connect(bool portal = true, int wait_seconds = 30);
         void portal();
-        String string(String name, String init = "", String label = "");
-        String string(String name, unsigned int max_length, String init = "", String label = "");
-        String string(String name, unsigned int min_length, unsigned int max_length, String init = "", String label = "");
-        long integer(String name, long init = 0, String label = "");
-        long integer(String name, long min, long max, long init = 0, String label = "");
-        bool checkbox(String name, bool init = false, String label = "");
+        String string(const String& name, const String& init = "", const String& label = "");
+        String string(const String& name, unsigned int max_length, const String& init = "", const String& label = "");
+        String string(const String& name, unsigned int min_length, unsigned int max_length, const String& init = "", const String& label = "");
+        long integer(const String& name, long init = 0, const String& label = "");
+        long integer(const String& name, long min, long max, long init = 0, const String& label = "");
+        bool checkbox(const String& name, bool init = false, const String& label = "");
 
         String hostname;
         String password;

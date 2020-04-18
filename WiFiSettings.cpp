@@ -11,14 +11,14 @@
 
 #define Sprintf(f, ...) ({ char* s; asprintf(&s, f, __VA_ARGS__); String r = s; free(s); r; })
 
-String slurp(String fn) {
+String slurp(const String& fn) {
     File f = SPIFFS.open(fn, "r");
     String r = f.readString();
     f.close();
     return r;
 }
 
-void spurt(String fn, String content) {
+void spurt(const String& fn, const String& content) {
     File f = SPIFFS.open(fn, "w");
     f.print(content);
     f.close();
@@ -32,7 +32,7 @@ String pwgen() {
     }
     return password;
 }
-String html_entities(String raw) {
+String html_entities(const String& raw) {
     String r;
     for (int i = 0; i < raw.length(); i++) {
         char c = raw.charAt(i);
@@ -55,7 +55,7 @@ struct WiFiSettingsParameter {
     long max = LONG_MAX;
 
     String filename() { String fn = "/"; fn += name; return fn; }
-    virtual void store(String v) { value = v; spurt(filename(), v); }
+    virtual void store(const String& v) { value = v; spurt(filename(), v); }
     void fill() { value = slurp(filename()); }
     virtual String html() = 0;
 };
@@ -103,7 +103,7 @@ struct WiFiSettingsBool : WiFiSettingsParameter {
 
 struct std::vector<WiFiSettingsParameter*> params;
 
-String WiFiSettingsClass::string(String name, String init, String label) {
+String WiFiSettingsClass::string(const String& name, const String& init, const String& label) {
     begin();
     struct WiFiSettingsString* x = new WiFiSettingsString();
     x->name = name;
@@ -115,20 +115,20 @@ String WiFiSettingsClass::string(String name, String init, String label) {
     return x->value.length() ? x->value : x->init;
 }
 
-String WiFiSettingsClass::string(String name, unsigned int max_length, String init, String label) {
+String WiFiSettingsClass::string(const String& name, unsigned int max_length, const String& init, const String& label) {
     String rv = string(name, init, label);
     params.back()->max = max_length;
     return rv;
 }
 
-String WiFiSettingsClass::string(String name, unsigned int min_length, unsigned int max_length, String init, String label) {
+String WiFiSettingsClass::string(const String& name, unsigned int min_length, unsigned int max_length, const String& init, const String& label) {
     String rv = string(name, init, label);
     params.back()->min = min_length;
     params.back()->max = max_length;
     return rv;
 }
 
-long WiFiSettingsClass::integer(String name,  long init, String label) {
+long WiFiSettingsClass::integer(const String& name, long init, const String& label) {
     begin();
     struct WiFiSettingsInt* x = new WiFiSettingsInt();
     x->name = name;
@@ -140,14 +140,14 @@ long WiFiSettingsClass::integer(String name,  long init, String label) {
     return (x->value.length() ? x->value : x->init).toInt();
 }
 
-long WiFiSettingsClass::integer(String name, long min, long max,  long init, String label) {
+long WiFiSettingsClass::integer(const String& name, long min, long max, long init, const String& label) {
     long rv = integer(name, init, label);
     params.back()->min = min;
     params.back()->max = max;
     return rv;
 }
 
-bool WiFiSettingsClass::checkbox(String name, bool init, String label) {
+bool WiFiSettingsClass::checkbox(const String& name, bool init, const String& label) {
     begin();
     struct WiFiSettingsBool* x = new WiFiSettingsBool();
     x->name = name;
