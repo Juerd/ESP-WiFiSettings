@@ -24,7 +24,12 @@ void setup() {
     Serial.begin(115200);
     SPIFFS.begin(true);  // Will format on the first run after failing to mount
 
-    WiFiSettings.secure = true; // Force a secure portal
+    // Force WPA secured WiFi for the software access point.
+    // Because OTA is remote code execution (RCE) by definition, the password
+    // should be kept secret. By default, WiFiSettings will become an insecure
+    // WiFi access point and happily tell anyone the password. The password
+    // will instead be provided on the Serial connection, which is a bit safer.
+    WiFiSettings.secure = true;
 
     // Set callbacks to start OTA when the portal is active
     WiFiSettings.onPortal = []() {
