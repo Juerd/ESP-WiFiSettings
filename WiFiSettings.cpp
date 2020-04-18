@@ -187,8 +187,11 @@ void WiFiSettingsClass::portal() {
     Serial.println(WiFi.softAPIP().toString());
 
     http.on("/", HTTP_GET, [this]() {
-        String html = "<!DOCTYPE html>\n<meta charset=UTF-8>"
-            "<title>{hostname}</title>"
+        http.setContentLength(CONTENT_LENGTH_UNKNOWN);
+        http.send(200, "text/html");
+        http.sendContent("<!DOCTYPE html>\n<meta charset=UTF-8><title>");
+        http.sendContent(hostname);
+        http.sendContent("</title>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
             "<style>"
             "*{box-sizing:border-box} "
@@ -202,6 +205,10 @@ void WiFiSettingsClass::portal() {
             ":not([type^=s]):focus{outline:2px solid #d1ed1e}"
             "</style>"
             "<form action=/restart method=post>"
+        );
+
+        String current = slurp("/wifi-ssid");
+        String html =
                 "Hello, my name is {hostname}."
                 "<p>Currently configured SSID: {ssid}<br>"
                 "<input type=submit value='Restart device'>"
@@ -209,23 +216,15 @@ void WiFiSettingsClass::portal() {
             "<hr>"
             "<h2>Configuration</h2>"
             "<form method=post>"
-                "<label>SSID:<br><select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">{options}</select></label> "
-                "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
-                "</select>"
-                "<p><label>WiFi WEP/WPA password:<br><input name=password value='{password}'></label>"
-                "<hr>{params}"
-                "<input type=submit value=Save>"
-            "</form>";
-
-        String current = slurp("/wifi-ssid");
-        String pw = slurp("/wifi-password");
-
+                "<label>SSID:<br>";
         html.replace("{hostname}", hostname);
         html.replace("{ssid}", current.length() ? html_entities(current) : "(not set)");
+        http.sendContent(html);
 
-        String options;
         if (num_networks < 0) num_networks = WiFi.scanNetworks();
         Serial.printf("%d WiFi networks found.\n", num_networks);
+
+        http.sendContent("<select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">");
 
         bool found = false;
         for (int i = 0; i < num_networks; i++) {
@@ -237,15 +236,25 @@ void WiFiSettingsClass::portal() {
             opt.replace("{ssid}", html_entities(ssid));
             opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
             opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
-            options += opt;
+            http.sendContent(opt);
         }
-        html.replace("{password}", found && pw.length() ? "##**##**##**" : "");
-        html.replace("{options}", options);
 
-        String params_html;
-        for (auto p : params) params_html += p->html() + "<p>";
-        html.replace("{params}", params_html);
-        http.send(200, "text/html", html);
+        String pw = slurp("/wifi-password");
+        html = "</select></label> "
+                "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
+                "</select>"
+                "<p><label>WiFi WEP/WPA password:<br>"
+                "<input name=password value='{password}'></label>"
+                "<hr>";
+        html.replace("{password}", found && pw.length() ? "##**##**##**" : "");
+        http.sendContent(html);
+
+        for (auto p : params) {
+            http.sendContent(p->html());
+            http.sendContent("<p>");
+        }
+
+        http.sendContent("<input type=submit value=Save></form>");
     });
 
     http.on("/", HTTP_POST, [this]() {
