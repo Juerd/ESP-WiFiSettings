@@ -204,22 +204,18 @@ void WiFiSettingsClass::portal() {
             "[type^=c]{float:left}"
             ":not([type^=s]):focus{outline:2px solid #d1ed1e}"
             "</style>"
-            "<form action=/restart method=post>"
+            "<form action=/restart method=post>Hello, my name is "
         );
-
-        String current = slurp("/wifi-ssid");
-        String html =
-                "Hello, my name is {hostname}."
-                "<p>Currently configured SSID: {ssid}<br>"
+        http.sendContent(html_entities(hostname));
+        http.sendContent(
+                "."
                 "<input type=submit value='Restart device'>"
             "</form>"
             "<hr>"
             "<h2>Configuration</h2>"
             "<form method=post>"
-                "<label>SSID:<br><b class=s>Scanning for WiFi networks...</b>";
-        html.replace("{hostname}", hostname);
-        html.replace("{ssid}", current.length() ? html_entities(current) : "(not set)");
-        http.sendContent(html);
+                "<label>SSID:<br><b class=s>Scanning for WiFi networks...</b>"
+        );
 
         if (num_networks < 0) num_networks = WiFi.scanNetworks();
         Serial.printf("%d WiFi networks found.\n", num_networks);
@@ -229,6 +225,7 @@ void WiFiSettingsClass::portal() {
             "<select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">"
         );
 
+        String current = slurp("/wifi-ssid");
         bool found = false;
         for (int i = 0; i < num_networks; i++) {
             String opt = "<option value='{ssid}'{sel}>{ssid} {lock} {1x}</option>";
@@ -241,16 +238,20 @@ void WiFiSettingsClass::portal() {
             opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
             http.sendContent(opt);
         }
+        if (! found) {
+            String opt = "<option value='{ssid}' selected>{ssid} (&#x26a0; not in range)</option>";
+            opt.replace("{ssid}", html_entities(current));
+            http.sendContent(opt);
+        }
 
-        String pw = slurp("/wifi-password");
-        html = "</select></label> "
+        http.sendContent("</select></label> "
                 "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
                 "</select>"
                 "<p><label>WiFi WEP/WPA password:<br>"
-                "<input name=password value='{password}'></label>"
-                "<hr>";
-        html.replace("{password}", found && pw.length() ? "##**##**##**" : "");
-        http.sendContent(html);
+                "<input name=password value='"
+        );
+        http.sendContent(slurp("/wifi-password").length() ? "##**##**##**" : "");
+        http.sendContent("'></label><hr>");
 
         for (auto p : params) {
             http.sendContent(p->html());
