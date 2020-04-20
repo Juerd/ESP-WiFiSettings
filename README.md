@@ -1,9 +1,9 @@
 # WiFi configuration manager for the ESP32 platform in the Arduino Framework
 
 <p align=center>
-![Screenshot of basic example](screenshots/basic-example.png){:width=:"30%}
-![Screenshot of advanced example](screenshots/advanced-example.png){:width=:"30%}
-![Screenshot of everything](screenshots/full.png){:width=:"30%}
+![Screenshot of basic example](screenshots/basic-example.png){:width="30%"}
+![Screenshot of advanced example](screenshots/advanced-example.png){:width="30%"}
+![Screenshot of everything](screenshots/full.png){:width="30%"}
 </p>
 
 <!--ts-->
