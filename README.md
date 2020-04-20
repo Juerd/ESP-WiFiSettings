@@ -1,4 +1,4 @@
-# WiFi configuration manager for the ESP32 platform in the Arduino Framework
+# WiFi configuration manager for the ESP32 platform in the Arduino framework
 
 <p align=center>
 <img alt="Screenshot of basic example" src="screenshots/basic-example.png" width="30%">
