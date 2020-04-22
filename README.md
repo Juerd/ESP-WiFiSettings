@@ -7,12 +7,13 @@
 </p>
 
 <!--ts-->
-   * [WiFi configuration manager for the ESP32 platform in the Arduino Framework](#wifi-configuration-manager-for-the-esp32-platform-in-the-arduino-framework)
+   * [WiFi configuration manager for the ESP32 platform in the Arduino framework](#wifi-configuration-manager-for-the-esp32-platform-in-the-arduino-framework)
       * [Description](#description)
       * [Examples](#examples)
          * [Minimal usage](#minimal-usage)
          * [Callbacks and custom variables](#callbacks-and-custom-variables)
          * [Other examples](#other-examples)
+      * [Installing](#installing)
       * [Reference](#reference)
          * [Functions](#functions)
             * [WiFiSettings.connect([...])](#wifisettingsconnect)
@@ -28,7 +29,7 @@
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Sat 18 Apr 2020 06:08:55 PM CEST -->
+<!-- Added by: juerd, at: Thu 23 Apr 2020 01:07:41 AM CEST -->
 
 <!--te-->
 
@@ -99,6 +100,16 @@ void setup() {
 enable over-the-air uploads in the WiFiSettings configuration portal. If you
 use the password from WiFiSettings as your OTA password, you no longer have
 to hard code it!
+
+## Installing
+
+Automated installation:
+* [Instructions for Arduino Library Manager](https://www.arduino.cc/en/guide/libraries)
+* [Instructions for PlatformIO Library Manager](https://platformio.org/lib/show/7251/esp32-WiFiSettings/installation)
+
+Getting the source for manual installation:
+* `git clone https://github.com/Juerd/esp32-WiFiSettings`
+* [.zip and .tar.gz files](https://github.com/Juerd/esp32-WiFiSettings/releases)
 
 ## Reference
 
