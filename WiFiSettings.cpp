@@ -323,6 +323,10 @@ void WiFiSettingsClass::portal() {
 bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     begin();
 
+    #ifdef ESP8266
+        WiFi.mode(WIFI_STA);
+    #endif
+
     String ssid = slurp("/wifi-ssid");
     String pw = slurp("/wifi-password");
     if (ssid.length() == 0 && portal) {
@@ -385,9 +389,9 @@ void WiFiSettingsClass::begin() {
 
 WiFiSettingsClass::WiFiSettingsClass() {
     #ifdef ESP8266
-    hostname = Sprintf("esp8266-%06" PRIx32, ESP.getChipId() >> 8);
+        hostname = Sprintf("esp8266-%06" PRIx32, ESP.getChipId() >> 8);
     #else
-    hostname = Sprintf("esp32-%06" PRIx64, ESP.getEfuseMac() >> 24);
+        hostname = Sprintf("esp32-%06" PRIx64, ESP.getEfuseMac() >> 24);
     #endif
 }
 
