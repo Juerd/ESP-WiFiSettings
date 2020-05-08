@@ -9,6 +9,7 @@
     #define vTaskDelay delay
     #define wifi_auth_mode_t uint8_t    // wl_enc_type
     #define WIFI_AUTH_OPEN ENC_TYPE_NONE
+    #define WIFI_AUTH_WPA2_ENTERPRISE -1337 // not available on ESP8266
 #else
     #define ESPFS SPIFFS
     #include <SPIFFS.h>
@@ -251,9 +252,7 @@ void WiFiSettingsClass::portal() {
             opt.replace("{sel}",  ssid == current && !(found++) ? " selected" : "");
             opt.replace("{ssid}", html_entities(ssid));
             opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
-            #ifdef ESP32
-                opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
-            #endif
+            opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
             http.sendContent(opt);
         }
         if (! found) {
