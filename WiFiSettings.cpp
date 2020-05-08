@@ -249,7 +249,7 @@ void WiFiSettingsClass::portal() {
                 "<p><label>WiFi WEP/WPA password:<br>"
                 "<input name=password value='"
         );
-        http.sendContent(slurp("/wifi-password").length() ? "##**##**##**" : "");
+        if (slurp("/wifi-password").length()) http.sendContent("##**##**##**");
         http.sendContent("'></label><hr>");
 
         for (auto p : params) {
