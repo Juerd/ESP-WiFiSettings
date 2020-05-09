@@ -247,7 +247,7 @@ void WiFiSettingsClass::portal() {
         for (int i = 0; i < num_networks; i++) {
             String opt = F("<option value='{ssid}'{sel}>{ssid} {lock} {1x}</option>");
             String ssid = WiFi.SSID(i);
-            wifi_auth_t mode = WiFi.encryptionType(i);
+            wifi_auth_mode_t mode = WiFi.encryptionType(i);
 
             opt.replace("{sel}",  ssid == current && !(found++) ? " selected" : "");
             opt.replace("{ssid}", html_entities(ssid));
