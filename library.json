@@ -7,7 +7,7 @@
         { "name": "Juerd Waalboer" },
         {
             "name": "Reinier van der Leer",
-            "url": "https://pwuts.nl"
+            "url": "https://pwuts.nl/"
         }
     ],
     "repository": { "type": "git", "url": "https://github.com/Juerd/ESP-WiFiSettings" },
