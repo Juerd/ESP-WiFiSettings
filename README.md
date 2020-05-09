@@ -1,4 +1,4 @@
-# WiFi configuration manager for the ESP32 platform in the Arduino framework
+# WiFi configuration manager for the ESP32 and ESP8266 platforms in the Arduino framework
 
 <p align=center>
 <img alt="Screenshot of basic example" src="screenshots/basic-example.png" width="30%">
@@ -7,7 +7,7 @@
 </p>
 
 <!--ts-->
-   * [WiFi configuration manager for the ESP32 platform in the Arduino framework](#wifi-configuration-manager-for-the-esp32-platform-in-the-arduino-framework)
+   * [WiFi configuration manager for the ESP32 and ESP8266 platforms in the Arduino framework](#wifi-configuration-manager-for-the-esp32-and-esp8266-platforms-in-the-arduino-framework)
       * [Description](#description)
       * [Examples](#examples)
          * [Minimal usage](#minimal-usage)
@@ -29,16 +29,16 @@
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Thu 23 Apr 2020 01:07:41 AM CEST -->
+<!-- Added by: juerd, at: Sat 09 May 2020 02:56:23 AM CEST -->
 
 <!--te-->
 
 ## Description
 
 This is a very simple, and somewhat naive, WiFi configuration manager for
-ESP32 programs written in the Arduino framework. It will allow you to
-configure your WiFi network name (SSID) and password via a captive portal:
-the ESP32 becomes an access point with a web based configuration page.
+ESP32 and ESP8266 programs written in the Arduino framework. It will allow you
+to configure your WiFi network name (SSID) and password via a captive portal:
+the ESP becomes an access point with a web based configuration page.
 
 It was written for ease of use, not for extended functionality. For example,
 restarting the microcontroller is the only way to leave the configuration
@@ -55,6 +55,9 @@ that are dumped in the root directory of the filesystem. Debug output
 Only automatic IP address assignment (DHCP) is supported.
 
 ## Examples
+
+Note: SPIFFS is deprecated for the ESP8266 in the latest versions; use LittleFS
+instead. No change is necessary for ESP32.
 
 ### Minimal usage
 
@@ -149,7 +152,7 @@ Calls the following callbacks:
 void portal();
 ```
 
-Disconnects any active WiFi and turns the ESP32 into a captive portal with a
+Disconnects any active WiFi and turns the ESP into a captive portal with a
 DNS server that works on every hostname.
 
 Normally, this function is called by `.connect()`. To allow reconfiguration
@@ -187,7 +190,7 @@ be used once!
 It is strongly suggested to include the name of a project in the `name` of the
 configuration option, if it is specific to that project. For example, an MQTT
 topic is probably specific to the application, while the server hostname
-is likely to be shared among several projects. This helps when the ESP32 is
+is likely to be shared among several projects. This helps when the ESP is
 later reused for different applications.
 
 Optionally, `label` can be specified as a descriptive text to use on the
@@ -213,9 +216,9 @@ String
 
 Name to use as the hostname and SSID for the access point.
 
-By default, this is set to "esp32-123456" where 123456 is the hexadecimal
-representation of the device interface specific part of the ESP32's MAC
-address, in reverse byte order.
+By default, this is set to "esp32-123456" or "esp8266-123456" where 123456 is
+the hexadecimal representation of the device interface specific part of the
+ESP's MAC address, in reverse byte order.
 
 #### WiFiSettings.password
 
