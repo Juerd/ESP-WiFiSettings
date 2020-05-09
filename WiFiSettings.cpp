@@ -1,5 +1,11 @@
 #include "WiFiSettings.h"
-#ifdef ESP8266
+#ifdef ESP32
+    #define ESPFS SPIFFS
+    #include <SPIFFS.h>
+    #include <WiFi.h>
+    #include <WebServer.h>
+    #include <esp_task_wdt.h>
+#elif ESP8266
     #define ESPFS LittleFS
     #include <LittleFS.h>
     #include <ESP8266WiFi.h>
@@ -10,11 +16,7 @@
     #define WIFI_AUTH_OPEN ENC_TYPE_NONE
     #define WIFI_AUTH_WPA2_ENTERPRISE -1337 // not available on ESP8266
 #else
-    #define ESPFS SPIFFS
-    #include <SPIFFS.h>
-    #include <WiFi.h>
-    #include <WebServer.h>
-    #include <esp_task_wdt.h>
+    #error "This library only supports ESP32 and ESP8266"
 #endif
 #include <DNSServer.h>
 #include <limits.h>
@@ -180,10 +182,10 @@ void WiFiSettingsClass::portal() {
     static int num_networks = -1;
     begin();
 
-    #ifdef ESP8266
-        WiFi.disconnect(true);
-    #else
+    #ifdef ESP32
         WiFi.disconnect(true, true);    // reset state so .scanNetworks() works
+    #else
+        WiFi.disconnect(true);
     #endif
 
     Serial.println(F("Starting access point for configuration portal."));
@@ -386,10 +388,10 @@ void WiFiSettingsClass::begin() {
 }
 
 WiFiSettingsClass::WiFiSettingsClass() {
-    #ifdef ESP8266
-        hostname = Sprintf("esp8266-%06" PRIx32, ESP.getChipId() >> 8);
-    #else
+    #ifdef ESP32
         hostname = Sprintf("esp32-%06" PRIx64, ESP.getEfuseMac() >> 24);
+    #else
+        hostname = Sprintf("esp8266-%06" PRIx32, ESP.getChipId() >> 8);
     #endif
 }
 
