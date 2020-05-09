@@ -5,14 +5,13 @@
     using the WifiSettings credentials.
 
     Source and further documentation available at
-    https://github.com/Juerd/esp32-WiFiSettings
+    https://github.com/Juerd/ESP-WiFiSettings
 
     Note: this example is written for ESP32.
-    For ESP8266, use LittleFS instead of SPIFFS.
+    For ESP8266, use LittleFS.begin() instead of SPIFFS.begin(true).
 */
 
 #include <SPIFFS.h>
-#include <WiFi.h>
 #include <WiFiSettings.h>
 #include <ArduinoOTA.h>
 

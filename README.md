@@ -49,15 +49,20 @@ it's only secured if you choose to do so by checking a checkbox. Of course,
 the user can configure pick their own password.
 
 The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
-that are dumped in the root directory of the filesystem. Debug output
-(including the password to the configuration portal) is written to `Serial`.
+or LittleFS on the ESP8266. The files are dumped in the root directory of the
+filesystem. Debug output (including the password to the configuration portal)
+is written to `Serial`.
 
 Only automatic IP address assignment (DHCP) is supported.
 
 ## Examples
 
 Note: SPIFFS is deprecated for the ESP8266 in the latest versions; use LittleFS
-instead. No change is necessary for ESP32.
+(`LittleFS.h`) instead. No change is necessary for ESP32.
+
+Unlike SPIFFS, LittleFS will *by default* format the file system on mount fail,
+and `LittleFS::begin()` does not accept arguments.
+Hence, instead of `SPIFFS.begin(true)`, use `LittleFS.begin()` on the ESP8266.
 
 ### Minimal usage
 
