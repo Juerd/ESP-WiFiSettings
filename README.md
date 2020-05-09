@@ -111,8 +111,8 @@ Automated installation:
 * [Instructions for PlatformIO Library Manager](https://platformio.org/lib/show/7251/esp32-WiFiSettings/installation)
 
 Getting the source for manual installation:
-* `git clone https://github.com/Juerd/esp32-WiFiSettings`
-* [.zip and .tar.gz files](https://github.com/Juerd/esp32-WiFiSettings/releases)
+* `git clone https://github.com/Juerd/ESP-WiFiSettings`
+* [.zip and .tar.gz files](https://github.com/Juerd/ESP-WiFiSettings/releases)
 
 ## Reference
 
