@@ -49,15 +49,18 @@ it's only secured if you choose to do so by checking a checkbox. Of course,
 the user can configure pick their own password.
 
 The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
-that are dumped in the root directory of the filesystem. Debug output
-(including the password to the configuration portal) is written to `Serial`.
+or LittleFS on the ESP8266. The files are dumped in the root directory of the
+filesystem. Debug output (including the password to the configuration portal)
+is written to `Serial`.
 
 Only automatic IP address assignment (DHCP) is supported.
 
 ## Examples
 
 Note: SPIFFS is deprecated for the ESP8266 in the latest versions; use LittleFS
-instead. No change is necessary for ESP32.
+(`LittleFS.h`) instead. No change is necessary for ESP32.
+
+Instead of `SPIFFS.begin(true)`, use `LittleFS.begin()` on the ESP8266.
 
 ### Minimal usage
 
@@ -111,8 +114,8 @@ Automated installation:
 * [Instructions for PlatformIO Library Manager](https://platformio.org/lib/show/7251/esp32-WiFiSettings/installation)
 
 Getting the source for manual installation:
-* `git clone https://github.com/Juerd/esp32-WiFiSettings`
-* [.zip and .tar.gz files](https://github.com/Juerd/esp32-WiFiSettings/releases)
+* `git clone https://github.com/Juerd/ESP-WiFiSettings`
+* [.zip and .tar.gz files](https://github.com/Juerd/ESP-WiFiSettings/releases)
 
 ## Reference
 
