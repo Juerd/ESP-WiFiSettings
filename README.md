@@ -13,6 +13,7 @@
          * [Minimal usage](#minimal-usage)
          * [Callbacks and custom variables](#callbacks-and-custom-variables)
          * [Other examples](#other-examples)
+         * [Note for ESP8266 users](#note-for-esp8266-users)
       * [Installing](#installing)
       * [Reference](#reference)
          * [Functions](#functions)
@@ -29,7 +30,7 @@
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Sat 09 May 2020 02:56:23 AM CEST -->
+<!-- Added by: juerd, at: Sun 10 May 2020 12:18:45 AM CEST -->
 
 <!--te-->
 
@@ -48,19 +49,13 @@ The library generates a random password to protect the portal with, but
 it's only secured if you choose to do so by checking a checkbox. Of course,
 the user can configure pick their own password.
 
-The configuration is stored in files in the SPIFFS (SPI Flash FileSystem),
-or LittleFS on the ESP8266. The files are dumped in the root directory of the
-filesystem. Debug output (including the password to the configuration portal)
-is written to `Serial`.
+The configuration is stored in files in the flash filesystem of the ESP. The
+files are dumped in the root directory of the filesystem. Debug output
+(including the password to the configuration portal) is written to `Serial`.
 
 Only automatic IP address assignment (DHCP) is supported.
 
 ## Examples
-
-Note: SPIFFS is deprecated for the ESP8266 in the latest versions; use LittleFS
-(`LittleFS.h`) instead. No change is necessary for ESP32.
-
-Instead of `SPIFFS.begin(true)`, use `LittleFS.begin()` on the ESP8266.
 
 ### Minimal usage
 
@@ -106,6 +101,17 @@ void setup() {
 enable over-the-air uploads in the WiFiSettings configuration portal. If you
 use the password from WiFiSettings as your OTA password, you no longer have
 to hard code it!
+
+### Note for ESP8266 users
+
+The examples are written for ESP32. To use them with the older ESP8266 chip,
+note that in the ESP8266 world, SPIFFS is deprecated and replaced by LittleFS.
+
+WifiSettings uses SPIFFS on ESP32, and LittleFS on ESP8266.
+
+Simply change both occurrences of `SPIFFS` to `LittleFS`, and remove `true` in
+the call to `LittleFS.begin();`. LittleFS will format the filesystem by
+default.
 
 ## Installing
 
