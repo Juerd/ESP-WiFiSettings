@@ -3,6 +3,9 @@
 
     Source and further documentation available at
     https://github.com/Juerd/esp32-WiFiSettings
+
+    Note: this example is written for ESP32.
+    For ESP8266, use LittleFS instead of SPIFFS.
 */
 
 #include <SPIFFS.h>
