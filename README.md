@@ -60,9 +60,7 @@ Only automatic IP address assignment (DHCP) is supported.
 Note: SPIFFS is deprecated for the ESP8266 in the latest versions; use LittleFS
 (`LittleFS.h`) instead. No change is necessary for ESP32.
 
-Unlike SPIFFS, LittleFS will *by default* format the file system on mount fail,
-and `LittleFS::begin()` does not accept arguments.
-Hence, instead of `SPIFFS.begin(true)`, use `LittleFS.begin()` on the ESP8266.
+Instead of `SPIFFS.begin(true)`, use `LittleFS.begin()` on the ESP8266.
 
 ### Minimal usage
 
