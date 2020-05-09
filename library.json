@@ -1,10 +1,16 @@
 {
-    "name": "esp32-WiFiSettings",
-    "version": "2.1.3",
-    "keywords": "esp32, wifi",
-    "description": "WiFi Manager for the ESP32 Arduino environment", 
-    "authors": { "name": "Juerd Waalboer" },
-    "repository": { "type": "git", "url": "https://github.com/Juerd/esp32-WiFiSettings" },
+    "name": "ESP-WiFiSettings",
+    "version": "3.0.0",
+    "keywords": "esp32, esp8266, wifi",
+    "description": "WiFi Manager for the ESP32 and ESP8266 Arduino environments", 
+    "authors": [
+        { "name": "Juerd Waalboer" },
+        {
+            "name": "Reinier van der Leer",
+            "url": "https://pwuts.nl"
+        }
+    ],
+    "repository": { "type": "git", "url": "https://github.com/Juerd/ESP-WiFiSettings" },
     "frameworks": "arduino",
-    "platforms": "espressif32"
+    "platforms": [ "espressif32", "espressif8266" ]
 }
