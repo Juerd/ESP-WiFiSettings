@@ -4,9 +4,8 @@
     #include <LittleFS.h>
     #include <ESP8266WiFi.h>
     #include <ESP8266WebServer.h>
-    #define ESPWebServer ESP8266WebServer
+    #define WebServer ESP8266WebServer
     #define esp_task_wdt_reset wdt_reset
-    #define vTaskDelay delay
     #define wifi_auth_mode_t uint8_t    // wl_enc_type
     #define WIFI_AUTH_OPEN ENC_TYPE_NONE
     #define WIFI_AUTH_WPA2_ENTERPRISE -1337 // not available on ESP8266
@@ -15,7 +14,6 @@
     #include <SPIFFS.h>
     #include <WiFi.h>
     #include <WebServer.h>
-    #define ESPWebServer WebServer
     #include <esp_task_wdt.h>
 #endif
 #include <DNSServer.h>
@@ -177,7 +175,7 @@ bool WiFiSettingsClass::checkbox(const String& name, bool init, const String& la
 }
 
 void WiFiSettingsClass::portal() {
-    static ESPWebServer http(80);
+    static WebServer http(80);
     static DNSServer dns;
     static int num_networks = -1;
     begin();
@@ -247,7 +245,7 @@ void WiFiSettingsClass::portal() {
         for (int i = 0; i < num_networks; i++) {
             String opt = F("<option value='{ssid}'{sel}>{ssid} {lock} {1x}</option>");
             String ssid = WiFi.SSID(i);
-            wifi_auth_mode_t mode = WiFi.encryptionType(i);
+            wifi_auth_t mode = WiFi.encryptionType(i);
 
             opt.replace("{sel}",  ssid == current && !(found++) ? " selected" : "");
             opt.replace("{ssid}", html_entities(ssid));
@@ -316,7 +314,7 @@ void WiFiSettingsClass::portal() {
         dns.processNextRequest();
         if (onPortalWaitLoop) onPortalWaitLoop();
         esp_task_wdt_reset();
-        vTaskDelay(1);
+        delay(1);
     }
 }
 
