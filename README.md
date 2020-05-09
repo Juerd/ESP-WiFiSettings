@@ -269,6 +269,10 @@ Note that this library was briefly named WiFiConfig, but was renamed to
 WiFiSettings because there was already another library called
 [WiFiConfig](https://github.com/snakeye/WifiConfig).
 
+From version 3.0.0, based on a contribution by Reinier van der Leer, this
+library also supports the older ESP8266, and the repository was renamed from
+esp32-WiFiSettings to ESP-WiFiSettings.
+
 ## A note about Hyrum's Law
 
 It is said that *all observable behaviors of your system will be depended on by
