@@ -47,7 +47,7 @@ String pwgen() {
 }
 String html_entities(const String& raw) {
     String r;
-    for (int i = 0; i < raw.length(); i++) {
+    for (size_t i = 0; i < raw.length(); i++) {
         char c = raw.charAt(i);
         if (c >= '!' && c <= 'z' && c != '&' && c != '<' && c != '>') {
             // printable ascii minus html and {}
@@ -391,7 +391,7 @@ WiFiSettingsClass::WiFiSettingsClass() {
     #ifdef ESP32
         hostname = Sprintf("esp32-%06" PRIx64, ESP.getEfuseMac() >> 24);
     #else
-        hostname = Sprintf("esp8266-%06" PRIx32, ESP.getChipId() >> 8);
+        hostname = Sprintf("esp8266-%06" PRIx32, ESP.getChipId());
     #endif
 }
 
