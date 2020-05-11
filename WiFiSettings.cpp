@@ -47,7 +47,7 @@ String pwgen() {
 }
 String html_entities(const String& raw) {
     String r;
-    for (size_t i = 0; i < raw.length(); i++) {
+    for (unsigned int i = 0; i < raw.length(); i++) {
         char c = raw.charAt(i);
         if (c >= '!' && c <= 'z' && c != '&' && c != '<' && c != '>') {
             // printable ascii minus html and {}
