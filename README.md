@@ -137,9 +137,9 @@ bool connect(bool portal = true, int wait_seconds = 30);
 ```
 
 If no WiFi network is configured yet, starts the configuration portal.
-In other cases, it will attempt to connect to the network, and wait until
-either a connection is established, or `wait_seconds` has elapsed.
-Returns `true` if connection succeeded.
+In other cases, it will attempt to connect to the network in station (WiFi
+client) mode, and wait until either a connection is established, or
+`wait_seconds` has elapsed. Returns `true` if connection succeeded.
 
 By default, a failed connection (no connection established within the timeout)
 will cause the configuration portal to be started. Given `portal = false`, it

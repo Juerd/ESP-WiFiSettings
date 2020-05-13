@@ -326,9 +326,7 @@ void WiFiSettingsClass::portal() {
 bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     begin();
 
-    #ifdef ESP8266
-        WiFi.mode(WIFI_STA);
-    #endif
+    WiFi.mode(WIFI_STA);
 
     String ssid = slurp("/wifi-ssid");
     String pw = slurp("/wifi-password");
