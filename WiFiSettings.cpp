@@ -24,97 +24,100 @@
 
 #define Sprintf(f, ...) ({ char* s; asprintf(&s, f, __VA_ARGS__); String r = s; free(s); r; })
 
-String slurp(const String& fn) {
-    File f = ESPFS.open(fn, "r");
-    String r = f.readString();
-    f.close();
-    return r;
-}
-
-void spurt(const String& fn, const String& content) {
-    File f = ESPFS.open(fn, "w");
-    f.print(content);
-    f.close();
-}
-
-String pwgen() {
-    const char* passchars = "ABCEFGHJKLMNPRSTUXYZabcdefhkmnorstvxz23456789-#@%^";
-    String password = "";
-    for (int i = 0; i < 16; i++) {
-        password.concat( passchars[random(strlen(passchars))] );
+namespace {  // Helpers
+    String slurp(const String& fn) {
+        File f = ESPFS.open(fn, "r");
+        String r = f.readString();
+        f.close();
+        return r;
     }
-    return password;
-}
-String html_entities(const String& raw) {
-    String r;
-    for (unsigned int i = 0; i < raw.length(); i++) {
-        char c = raw.charAt(i);
-        if (c >= '!' && c <= 'z' && c != '&' && c != '<' && c != '>') {
-            // printable ascii minus html and {}
-            r += c;
-        } else {
-            r += Sprintf("&#%d;", raw.charAt(i));
+
+    void spurt(const String& fn, const String& content) {
+        File f = ESPFS.open(fn, "w");
+        f.print(content);
+        f.close();
+    }
+
+    String pwgen() {
+        const char* passchars = "ABCEFGHJKLMNPRSTUXYZabcdefhkmnorstvxz23456789-#@%^";
+        String password = "";
+        for (int i = 0; i < 16; i++) {
+            password.concat( passchars[random(strlen(passchars))] );
         }
+        return password;
     }
-    return r;
+
+    String html_entities(const String& raw) {
+        String r;
+        for (unsigned int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (c >= '!' && c <= 'z' && c != '&' && c != '<' && c != '>') {
+                // printable ascii minus html and {}
+                r += c;
+            } else {
+                r += Sprintf("&#%d;", raw.charAt(i));
+            }
+        }
+        return r;
+    }
+
+    struct WiFiSettingsParameter {
+        String name;
+        String label;
+        String value;
+        String init;
+        long min = LONG_MIN;
+        long max = LONG_MAX;
+
+        String filename() { String fn = "/"; fn += name; return fn; }
+        virtual void store(const String& v) { value = v; spurt(filename(), v); }
+        void fill() { value = slurp(filename()); }
+        virtual String html() = 0;
+    };
+
+    struct WiFiSettingsString : WiFiSettingsParameter {
+        String html() {
+            String h = F("<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' minlength={min} maxlength={max}></label>");
+            h.replace("{name}", html_entities(name));
+            h.replace("{value}", html_entities(value));
+            h.replace("{init}", html_entities(init));
+            h.replace("{label}", html_entities(label));
+            h.replace("{min}", String(min));
+            h.replace("{max}", String(max));
+            return h;
+        }
+    };
+
+    struct WiFiSettingsInt : WiFiSettingsParameter {
+        String html() {
+            String h = F("<label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>");
+            h.replace("{name}", html_entities(name));
+            h.replace("{value}", html_entities(value));
+            h.replace("{init}", html_entities(init));
+            h.replace("{label}", html_entities(label));
+            h.replace("{min}", String(min > 0 ? min : 0));
+            h.replace("{max}", String(max));
+            return h;
+        }
+    };
+
+    struct WiFiSettingsBool : WiFiSettingsParameter {
+        String html() {
+            String h = F("<label><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>");
+            h.replace("{name}", html_entities(name));
+            h.replace("{checked}", value.toInt() ? " checked" : "");
+            h.replace("{init}", init.toInt() ? "&#x2611;" : "&#x2610;");
+            h.replace("{label}", html_entities(label));
+            return h;
+        }
+        virtual void store(String v) {
+            value = v.length() ? "1" : "0";
+            spurt(filename(), value);
+        }
+    };
+
+    struct std::vector<WiFiSettingsParameter*> params;
 }
-
-struct WiFiSettingsParameter {
-    String name;
-    String label;
-    String value;
-    String init;
-    long min = LONG_MIN;
-    long max = LONG_MAX;
-
-    String filename() { String fn = "/"; fn += name; return fn; }
-    virtual void store(const String& v) { value = v; spurt(filename(), v); }
-    void fill() { value = slurp(filename()); }
-    virtual String html() = 0;
-};
-
-struct WiFiSettingsString : WiFiSettingsParameter {
-    String html() {
-        String h = F("<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' minlength={min} maxlength={max}></label>");
-        h.replace("{name}", html_entities(name));
-        h.replace("{value}", html_entities(value));
-        h.replace("{init}", html_entities(init));
-        h.replace("{label}", html_entities(label));
-        h.replace("{min}", String(min));
-        h.replace("{max}", String(max));
-        return h;
-    }
-};
-
-struct WiFiSettingsInt : WiFiSettingsParameter {
-    String html() {
-        String h = F("<label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>");
-        h.replace("{name}", html_entities(name));
-        h.replace("{value}", html_entities(value));
-        h.replace("{init}", html_entities(init));
-        h.replace("{label}", html_entities(label));
-        h.replace("{min}", String(min > 0 ? min : 0));
-        h.replace("{max}", String(max));
-        return h;
-    }
-};
-
-struct WiFiSettingsBool : WiFiSettingsParameter {
-    String html() {
-        String h = F("<label><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>");
-        h.replace("{name}", html_entities(name));
-        h.replace("{checked}", value.toInt() ? " checked" : "");
-        h.replace("{init}", init.toInt() ? "&#x2611;" : "&#x2610;");
-        h.replace("{label}", html_entities(label));
-        return h;
-    }
-    virtual void store(String v) {
-        value = v.length() ? "1" : "0";
-        spurt(filename(), value);
-    }
-};
-
-struct std::vector<WiFiSettingsParameter*> params;
 
 String WiFiSettingsClass::string(const String& name, const String& init, const String& label) {
     begin();
