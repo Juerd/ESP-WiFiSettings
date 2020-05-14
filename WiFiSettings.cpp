@@ -258,7 +258,7 @@ void WiFiSettingsClass::portal() {
             opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
             http.sendContent(opt);
         }
-        if (!found) {
+        if (!found && current.length()) {
             String opt = F("<option value='{ssid}' selected>{ssid} (&#x26a0; not in range)</option>");
             opt.replace("{ssid}", html_entities(current));
             http.sendContent(opt);
