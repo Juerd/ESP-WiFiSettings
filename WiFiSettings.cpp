@@ -95,7 +95,7 @@ namespace {  // Helpers
             h.replace("{value}", html_entities(value));
             h.replace("{init}", html_entities(init));
             h.replace("{label}", html_entities(label));
-            h.replace("{min}", String(min > 0 ? min : 0));
+            h.replace("{min}", String(min));
             h.replace("{max}", String(max));
             return h;
         }
