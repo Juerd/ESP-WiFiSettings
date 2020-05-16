@@ -253,11 +253,13 @@ void WiFiSettingsClass::portal() {
             String ssid = WiFi.SSID(i);
             wifi_auth_mode_t mode = WiFi.encryptionType(i);
 
-            opt.replace("{sel}",  ssid == current && !(found++) ? " selected" : "");
+            opt.replace("{sel}",  ssid == current && !found ? " selected" : "");
             opt.replace("{ssid}", html_entities(ssid));
             opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
             opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
             http.sendContent(opt);
+
+            if (ssid == current) found = true;
         }
         if (!found && current.length()) {
             String opt = F("<option value='{ssid}' selected>{ssid} (&#x26a0; not in range)</option>");
