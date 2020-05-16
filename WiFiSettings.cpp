@@ -211,7 +211,7 @@ void WiFiSettingsClass::portal() {
         http.setContentLength(CONTENT_LENGTH_UNKNOWN);
         http.send(200, "text/html");
         http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
-        http.sendContent(hostname);
+        http.sendContent(html_entities(hostname));
         http.sendContent(F("</title>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
             "<style>"
