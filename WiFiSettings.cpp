@@ -277,7 +277,7 @@ void WiFiSettingsClass::portal() {
 
         for (auto p : params) {
             http.sendContent(p->html());
-            http.sendContent(F("<p>"));
+            http.sendContent("<p>");
         }
 
         http.sendContent(F("<input type=submit value=Save></form>"));
