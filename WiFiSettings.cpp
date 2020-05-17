@@ -16,6 +16,7 @@
     #define WIFI_AUTH_OPEN ENC_TYPE_NONE
     #define WIFI_AUTH_WPA2_ENTERPRISE -1337 // not available on ESP8266
     #define setHostname hostname
+    #define INADDR_NONE IPAddress(0,0,0,0)
 #else
     #error "This library only supports ESP32 and ESP8266"
 #endif
