@@ -15,6 +15,8 @@
     #define wifi_auth_mode_t uint8_t    // wl_enc_type
     #define WIFI_AUTH_OPEN ENC_TYPE_NONE
     #define WIFI_AUTH_WPA2_ENTERPRISE -1337 // not available on ESP8266
+    #define setHostname hostname
+    #define INADDR_NONE IPAddress(0,0,0,0)
 #else
     #error "This library only supports ESP32 and ESP8266"
 #endif
@@ -340,6 +342,9 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
 
     Serial.printf("Connecting to WiFi SSID '%s'", ssid.c_str());
     if (onConnect) onConnect();
+
+    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);  // arduino-esp32 #2537
+    WiFi.setHostname(hostname.c_str());
     WiFi.begin(ssid.c_str(), pw.c_str());
 
     unsigned long starttime = millis();
