@@ -328,7 +328,7 @@ void WiFiSettingsClass::portal() {
     }
 }
 
-bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
+bool WiFiSettingsClass::connect(bool portal, int wait_seconds, IPAddress static_ip, IPAddress gateway, IPAddress subnet, IPAddress dns) {
     begin();
 
     WiFi.mode(WIFI_STA);
@@ -343,14 +343,14 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     Serial.printf("Connecting to WiFi SSID '%s'", ssid.c_str());
     if (onConnect) onConnect();
 
-    WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);  // arduino-esp32 #2537
+    WiFi.config(static_ip, gateway, subnet, dns);  // arduino-esp32 #2537
     WiFi.setHostname(hostname.c_str());
     WiFi.begin(ssid.c_str(), pw.c_str());
 
     unsigned long starttime = millis();
     while (WiFi.status() != WL_CONNECTED && (wait_seconds < 0 || (millis() - starttime) < wait_seconds * 1000)) {
         Serial.print(".");
-        delay(onWaitLoop ? onWaitLoop() : 100);
+        delay(onWaitLoop ? onWaitLoop() : 10);
     }
 
     if (WiFi.status() != WL_CONNECTED) {

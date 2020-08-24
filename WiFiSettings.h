@@ -11,7 +11,7 @@ class WiFiSettingsClass {
 
         WiFiSettingsClass();
         void begin();
-        bool connect(bool portal = true, int wait_seconds = 30);
+        bool connect(bool portal = true, int wait_seconds = 30, IPAddress static_ip = INADDR_NONE, IPAddress gateway = INADDR_NONE, IPAddress subnet = INADDR_NONE, IPAddress dns = INADDR_NONE);
         void portal();
         String string(const String& name, const String& init = "", const String& label = "");
         String string(const String& name, unsigned int max_length, const String& init = "", const String& label = "");
