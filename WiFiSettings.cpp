@@ -73,12 +73,14 @@ namespace {  // Helpers
         long max = LONG_MAX;
 
         String filename() { String fn = "/"; fn += name; return fn; }
-        virtual void store(const String& v) { value = v; spurt(filename(), v); }
+        void store() { spurt(filename(), value); }
         void fill() { value = slurp(filename()); }
+        virtual void set(const String&) = 0;
         virtual String html() = 0;
     };
 
     struct WiFiSettingsString : WiFiSettingsParameter {
+        virtual void set(const String& v) { value = v; }
         String html() {
             String h = F("<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' minlength={min} maxlength={max}></label>");
             h.replace("{name}", html_entities(name));
@@ -92,6 +94,7 @@ namespace {  // Helpers
     };
 
     struct WiFiSettingsInt : WiFiSettingsParameter {
+        virtual void set(const String& v) { value = v; }
         String html() {
             String h = F("<label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>");
             h.replace("{name}", html_entities(name));
@@ -105,6 +108,7 @@ namespace {  // Helpers
     };
 
     struct WiFiSettingsBool : WiFiSettingsParameter {
+        virtual void set(const String& v) { value = v.length() ? "1" : "0"; }
         String html() {
             String h = F("<label><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>");
             h.replace("{name}", html_entities(name));
@@ -112,10 +116,6 @@ namespace {  // Helpers
             h.replace("{init}", init.toInt() ? "&#x2611;" : "&#x2610;");
             h.replace("{label}", html_entities(label));
             return h;
-        }
-        virtual void store(String v) {
-            value = v.length() ? "1" : "0";
-            spurt(filename(), value);
         }
     };
 
@@ -293,7 +293,7 @@ void WiFiSettingsClass::portal() {
             spurt("/wifi-password", pw);
         }
 
-        for (auto p : params) p->store(http.arg(p->name));
+        for (auto p : params) { p->set(http.arg(p->name)); p->store(); }
 
         http.sendHeader("Location", "/");
         http.send(302, "text/plain", "ok");
@@ -391,7 +391,8 @@ void WiFiSettingsClass::begin() {
             // With regular 'init' semantics, the password would be changed
             // all the time.
             password = pwgen();
-            params.back()->store(password);
+            params.back()->set(password);
+            params.back()->store();
         }
     }
 }
