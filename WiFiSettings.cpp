@@ -41,7 +41,7 @@ namespace {  // Helpers
     }
 
     String pwgen() {
-        const char* passchars = "ABCEFGHJKLMNPRSTUXYZabcdefhkmnorstvxz23456789-#@%^";
+        const char* passchars = "ABCEFGHJKLMNPRSTUXYZabcdefhkmnorstvxz23456789-#@?!";
         String password = "";
         for (int i = 0; i < 16; i++) {
             // Note: no seed needed for ESP8266 and ESP32 hardware RNG
