@@ -252,11 +252,18 @@ member variables should be done *before* calling any of the functions.
 String
 ```
 
-Name to use as the hostname and SSID for the access point.
+Name to use as the hostname and SSID for the access point. By default, this is
+set to "esp32-" or "esp8266-", depending on the platform.
 
-By default, this is set to "esp32-123456" or "esp8266-123456" where 123456 is
-the hexadecimal representation of the device interface specific part of the
-ESP's MAC address, in reverse byte order.
+If it ends in a `-` character, a unique 6 digit device identifier
+(specifically, the hexadecimal representation of the device interface specific
+part of the ESP's MAC address, in reverse byte order) is added automatically.
+This is highly recommended.
+
+Use only ASCII digits and letters. ASCII hyphens (`-`) can only be used in
+between other characters (i.e. not two in a row, and not as the first
+character). Most characters, including underscores (`_`) and spaces, are not
+valid in hostnames.
 
 #### WiFiSettings.password
 

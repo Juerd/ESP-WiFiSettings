@@ -445,13 +445,21 @@ void WiFiSettingsClass::begin() {
             params.back()->store();
         }
     }
+
+    if (hostname.endsWith("-")) {
+        #ifdef ESP32
+            hostname += Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24);
+        #else
+            hostname += Sprintf("%06" PRIx32, ESP.getChipId());
+        #endif
+    }
 }
 
 WiFiSettingsClass::WiFiSettingsClass() {
     #ifdef ESP32
-        hostname = Sprintf("esp32-%06" PRIx64, ESP.getEfuseMac() >> 24);
+        hostname = "esp32-";
     #else
-        hostname = Sprintf("esp8266-%06" PRIx32, ESP.getChipId());
+        hostname = "esp8266-";
     #endif
 }
 
