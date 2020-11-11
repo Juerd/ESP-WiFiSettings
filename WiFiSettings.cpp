@@ -385,7 +385,7 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
 
     String ssid = slurp("/wifi-ssid");
     String pw = slurp("/wifi-password");
-    if (ssid.length() == 0 && portal) {
+    if (ssid.length() == 0) {
         Serial.println("First contact!\n");
         this->portal();
     }
