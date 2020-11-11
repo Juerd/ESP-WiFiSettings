@@ -1,6 +1,6 @@
 {
     "name": "ESP-WiFiSettings",
-    "version": "3.3.3",
+    "version": "3.4.0",
     "keywords": "esp32, esp8266, wifi",
     "description": "WiFi Manager for the ESP32 and ESP8266 Arduino environments", 
     "authors": [
