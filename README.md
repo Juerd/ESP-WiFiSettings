@@ -22,6 +22,10 @@
             * [WiFiSettings.integer(...)](#wifisettingsinteger)
             * [WiFiSettings.string(...)](#wifisettingsstring)
             * [WiFiSettings.checkbox(...)](#wifisettingscheckbox)
+            * [WiFiSettings.html(...)](#wifisettingshtml)
+            * [WiFiSettings.heading(...)](#wifisettingsheading)
+            * [WiFiSettings.warning(...)](#wifisettingswarning)
+            * [WiFiSettings.info(...)](#wifisettingsinfo)
          * [Variables](#variables)
             * [WiFiSettings.hostname](#wifisettingshostname)
             * [WiFiSettings.password](#wifisettingspassword)
@@ -30,7 +34,7 @@
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Sun 10 May 2020 12:18:45 AM CEST -->
+<!-- Added by: juerd, at: Wed 11 Nov 2020 05:37:25 AM CET -->
 
 <!--te-->
 
@@ -211,6 +215,31 @@ integers, a range can be specified by supplying both `min` and `max`. For
 strings, a maximum length can be specified as `max_length`. A minimum string
 length can be set with `min_length`, effectively making the field mandatory:
 it can no longer be left empty to get the `init` value.
+
+#### WiFiSettings.html(...)
+#### WiFiSettings.heading(...)
+#### WiFiSettings.warning(...)
+#### WiFiSettings.info(...)
+
+```C++
+void html(String tag, String contents, bool escape = true);
+void heading(String contents, bool escape = true);
+void warning(String contents, bool escape = true);
+void info(String contents, bool escape = true);
+```
+
+Mix in custom text or HTML fragments, such as headings, warning texts, or info
+texts.
+
+Custom HTML can be specified with the `html` function, which takes a tag (e.g.
+`"p"`) or a tag with attributes (e.g. `"p align=right"`) as the first argument.
+Only tags that take a closing tag should be used. The other functions are
+provided for convenience.
+
+The contents are safely escaped by default, but raw HTML can be added by
+providing `false` as the last argument, in which case the contents are added to
+the page without any verification or modification. Consider the security
+implications of using unescaped data from external sources.
 
 ### Variables
 

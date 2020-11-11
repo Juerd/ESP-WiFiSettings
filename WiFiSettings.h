@@ -19,6 +19,10 @@ class WiFiSettingsClass {
         long integer(const String& name, long init = 0, const String& label = "");
         long integer(const String& name, long min, long max, long init = 0, const String& label = "");
         bool checkbox(const String& name, bool init = false, const String& label = "");
+        void html(const String& tag, const String& contents, bool escape = true);
+        void heading(const String& contents, bool escape = true);
+        void warning(const String& contents, bool escape = true);
+        void info(const String& contents, bool escape = true);
 
         String hostname;
         String password;

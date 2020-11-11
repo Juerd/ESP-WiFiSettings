@@ -73,8 +73,8 @@ namespace {  // Helpers
         long max = LONG_MAX;
 
         String filename() { String fn = "/"; fn += name; return fn; }
-        void store() { spurt(filename(), value); }
-        void fill() { value = slurp(filename()); }
+        void store() { if (name && name.length()) spurt(filename(), value); }
+        void fill() { if (name && name.length()) value = slurp(filename()); }
         virtual void set(const String&) = 0;
         virtual String html() = 0;
     };
@@ -82,7 +82,7 @@ namespace {  // Helpers
     struct WiFiSettingsString : WiFiSettingsParameter {
         virtual void set(const String& v) { value = v; }
         String html() {
-            String h = F("<label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' minlength={min} maxlength={max}></label>");
+            String h = F("<p><label>{label}:<br><input name='{name}' value='{value}' placeholder='{init}' minlength={min} maxlength={max}></label>");
             h.replace("{name}", html_entities(name));
             h.replace("{value}", html_entities(value));
             h.replace("{init}", html_entities(init));
@@ -96,7 +96,7 @@ namespace {  // Helpers
     struct WiFiSettingsInt : WiFiSettingsParameter {
         virtual void set(const String& v) { value = v; }
         String html() {
-            String h = F("<label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>");
+            String h = F("<p><label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>");
             h.replace("{name}", html_entities(name));
             h.replace("{value}", html_entities(value));
             h.replace("{init}", html_entities(init));
@@ -110,11 +110,30 @@ namespace {  // Helpers
     struct WiFiSettingsBool : WiFiSettingsParameter {
         virtual void set(const String& v) { value = v.length() ? "1" : "0"; }
         String html() {
-            String h = F("<label><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>");
+            String h = F("<p><label class=c><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>");
             h.replace("{name}", html_entities(name));
             h.replace("{checked}", value.toInt() ? " checked" : "");
             h.replace("{init}", init.toInt() ? "&#x2611;" : "&#x2610;");
             h.replace("{label}", html_entities(label));
+            return h;
+        }
+    };
+
+    struct WiFiSettingsHTML : WiFiSettingsParameter {
+        // Raw HTML, not an actual parameter. The reason for the "if (name)"
+        // in store and fill. Abuses several member variables for completely
+        // different functionality.
+
+        virtual void set(const String& v) { }
+        String html() {
+            int space = value.indexOf(" ");
+
+            String h = 
+                (value ? "<" + value + ">" : "")
+                +
+                (min ? html_entities(label) : label)
+                +
+                (value ? "</" + (space >= 0 ? value.substring(0, space) : value) + ">" : "");
             return h;
         }
     };
@@ -182,6 +201,29 @@ bool WiFiSettingsClass::checkbox(const String& name, bool init, const String& la
     return x->value.toInt();
 }
 
+void WiFiSettingsClass::html(const String& tag, const String& contents, bool escape) {
+    begin();
+    struct WiFiSettingsHTML* x = new WiFiSettingsHTML();
+    x->value = tag;
+    x->label = contents;
+    x->min = escape;
+
+    params.push_back(x);
+}
+
+void WiFiSettingsClass::info(const String& contents, bool escape) {
+    html("p class=i", contents, escape);
+}
+
+void WiFiSettingsClass::warning(const String& contents, bool escape) {
+    html("p class=w", contents, escape);
+}
+
+void WiFiSettingsClass::heading(const String& contents, bool escape) {
+    html("h2", contents, escape);
+}
+
+
 void WiFiSettingsClass::portal() {
     static WebServer http(80);
     static DNSServer dns;
@@ -223,19 +265,25 @@ void WiFiSettingsClass::portal() {
             "a:link{color:#000} "
             "label{clear:both}"
             "select,input:not([type^=c]){display:block;width:100%;border:1px solid #444;padding:.3ex}"
-            "input[type^=s]{width:auto;background:#de1;padding:1ex;border:1px solid #000;border-radius:1ex}"
-            "[type^=c]{float:left}"
+            "input[type^=s]{display:inline;width:auto;background:#de1;padding:1ex;border:1px solid #000;border-radius:1ex}"
+            "[type^=c]{float:left;margin-left:-1.5em}"
             ":not([type^=s]):focus{outline:2px solid #d1ed1e}"
+            ".w::before{content:'\\26a0\\fe0f'}"
+            "p::before{margin-left:-2em;float:left;padding-top:1ex}"
+            ".i::before{content:'\\2139\\fe0f'}"
+            ".c{display:block;padding-left:2em}"
+            ".w,.i{display:block;padding:.5ex .5ex .5ex 3em}"
+            ".w,.i{background:#aaa;min-height:3em}"
             "</style>"
             "<form action=/restart method=post>Hello, my name is "
         ));
         http.sendContent(html_entities(hostname));
         http.sendContent(F(
                 "."
-                "<input type=submit value='Restart device'>"
+                "<p><input type=submit value='Restart device'>"
             "</form>"
             "<hr>"
-            "<h2>Configuration</h2>"
+            "<h1>Configuration</h1>"
             "<form method=post>"
                 "<label>SSID:<br><b class=s>Scanning for WiFi networks...</b>"
         ));
@@ -279,10 +327,12 @@ void WiFiSettingsClass::portal() {
 
         for (auto p : params) {
             http.sendContent(p->html());
-            http.sendContent("<p>");
         }
 
-        http.sendContent(F("<input type=submit value=Save></form>"));
+        http.sendContent(F(
+            "<p style='position:sticky;bottom:0;text-align:right'>"
+            "<input type=submit value=Save style='font-size:150%'></form>"
+        ));
     });
 
     http.on("/", HTTP_POST, [this]() {
