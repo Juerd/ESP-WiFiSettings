@@ -6,9 +6,6 @@
 
     Source and further documentation available at
     https://github.com/Juerd/ESP-WiFiSettings
-
-    Note: this example is written for ESP32.
-    For ESP8266, use LittleFS.begin() instead of LittleFS.begin(true).
 */
 
 #ifdef ESP8266
