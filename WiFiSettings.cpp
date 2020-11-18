@@ -16,7 +16,7 @@
     #define esp_task_wdt_reset wdt_reset
     #define wifi_auth_mode_t uint8_t    // wl_enc_type
     #define WIFI_AUTH_OPEN ENC_TYPE_NONE
-    #define WIFI_AUTH_WPA2_ENTERPRISE -1337 // not available on ESP8266
+    constexpr auto WIFI_AUTH_WPA2_ENTERPRISE = -1337; // not available on ESP8266
     #define setHostname hostname
     #define INADDR_NONE IPAddress(0,0,0,0)
 #else
