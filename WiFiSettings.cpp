@@ -1,12 +1,14 @@
 #include "WiFiSettings.h"
 #ifdef ESP32
     #define ESPFS SPIFFS
+    #define ESPMAC (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24))
     #include <SPIFFS.h>
     #include <WiFi.h>
     #include <WebServer.h>
     #include <esp_task_wdt.h>
 #elif ESP8266
     #define ESPFS LittleFS
+    #define ESPMAC (Sprintf("%06" PRIx32, ESP.getChipId()))
     #include <LittleFS.h>
     #include <ESP8266WiFi.h>
     #include <ESP8266WebServer.h>
@@ -36,8 +38,7 @@ namespace {  // Helpers
 
     bool spurt(const String& fn, const String& content) {
         File f = ESPFS.open(fn, "w");
-        if (!f)
-            return false;
+        if (!f) return false;
         auto w = f.print(content);
         f.close();
         return w == content.length();
@@ -339,34 +340,33 @@ void WiFiSettingsClass::portal() {
     });
 
     http.on("/", HTTP_POST, [this]() {
-        bool stored = spurt("/wifi-ssid", http.arg("ssid"));
+        bool ok = true;
+        if (! spurt("/wifi-ssid", http.arg("ssid"))) ok = false;
 
         String pw = http.arg("password");
         if (pw != "##**##**##**") {
-            stored = stored && spurt("/wifi-password", pw);
+            if (! spurt("/wifi-password", pw)) ok = false;
         }
 
-        for (auto p : params) { p->set(http.arg(p->name)); stored = stored && p->store(); }
-
-        if (!stored) {
-            Serial.println(F("ERROR storing on FS");
+        for (auto p : params) {
+            p->set(http.arg(p->name));
+            if (! p->store()) ok = false;
         }
-        http.sendHeader("Location", stored? "/": "/fserror");
-        http.send(302, "text/plain", "ok");
-        if (onConfigSaved) onConfigSaved();
+
+        if (ok) {
+            http.sendHeader("Location", "/");
+            http.send(302, "text/plain", "ok");
+            if (onConfigSaved) onConfigSaved();
+        } else {
+            // Could be missing SPIFFS.begin(), unformatted filesystem, or broken flash.
+            http.send(500, "text/plain", F("Error while writing to flash filesystem."));
+        }
     });
 
     http.on("/restart", HTTP_POST, [this]() {
         http.send(200, "text/plain", "Doei!");
         if (onRestart) onRestart();
         ESP.restart();
-    });
-
-    http.on("/fserror", HTTP_GET, [this]() {
-        http.send(200, "text/html", F("<meta http-equiv=\"Refresh\" content=\"5;url=/\">"
-              "<body>"
-              "ERROR writing configuration on filesystem!" // better html?
-              "</body>"));
     });
 
     http.on("/rescan", HTTP_GET, [this]() {
@@ -459,13 +459,7 @@ void WiFiSettingsClass::begin() {
         }
     }
 
-    if (hostname.endsWith("-")) {
-        #ifdef ESP32
-            hostname += Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24);
-        #else
-            hostname += Sprintf("%06" PRIx32, ESP.getChipId());
-        #endif
-    }
+    if (hostname.endsWith("-")) hostname += ESPMAC;
 }
 
 WiFiSettingsClass::WiFiSettingsClass() {
