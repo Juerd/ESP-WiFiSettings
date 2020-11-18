@@ -8,10 +8,15 @@
     https://github.com/Juerd/ESP-WiFiSettings
 
     Note: this example is written for ESP32.
-    For ESP8266, use LittleFS.begin() instead of SPIFFS.begin(true).
+    For ESP8266, use LittleFS.begin() instead of LittleFS.begin(true).
 */
 
+#ifdef ESP8266
+#include <LittleFS.h>
+#else
 #include <SPIFFS.h>
+#endif
+
 #include <WiFiSettings.h>
 
 // Status LED
@@ -21,7 +26,11 @@ const uint32_t LED_PIN = 2;
 
 void setup() {
     Serial.begin(115200);
+#ifdef ESP8266
+    LittleFS.begin();
+#else
     SPIFFS.begin(true);  // Will format on the first run after failing to mount
+#endif
 
     pinMode(LED_PIN, OUTPUT);
 

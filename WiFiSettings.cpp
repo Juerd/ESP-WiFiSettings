@@ -14,7 +14,6 @@
     #define esp_task_wdt_reset wdt_reset
     #define wifi_auth_mode_t uint8_t    // wl_enc_type
     #define WIFI_AUTH_OPEN ENC_TYPE_NONE
-    #define WIFI_AUTH_WPA2_ENTERPRISE -1337 // not available on ESP8266
     #define setHostname hostname
     #define INADDR_NONE IPAddress(0,0,0,0)
 #else
@@ -124,7 +123,7 @@ namespace {  // Helpers
         // in store and fill. Abuses several member variables for completely
         // different functionality.
 
-        virtual void set(const String& v) { }
+        virtual void set(const String& v) { (void)v; }
         String html() {
             int space = value.indexOf(" ");
 
@@ -306,7 +305,9 @@ void WiFiSettingsClass::portal() {
             opt.replace("{sel}",  ssid == current && !found ? " selected" : "");
             opt.replace("{ssid}", html_entities(ssid));
             opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
+#ifndef ESP8266
             opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
+#endif
             http.sendContent(opt);
 
             if (ssid == current) found = true;
@@ -398,7 +399,7 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     WiFi.begin(ssid.c_str(), pw.c_str());
 
     unsigned long starttime = millis();
-    while (WiFi.status() != WL_CONNECTED && (wait_seconds < 0 || (millis() - starttime) < wait_seconds * 1000)) {
+    while (WiFi.status() != WL_CONNECTED && (wait_seconds < 0 || (millis() - starttime) < (unsigned)wait_seconds * 1000)) {
         Serial.print(".");
         delay(onWaitLoop ? onWaitLoop() : 100);
     }
