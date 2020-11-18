@@ -33,10 +33,13 @@ namespace {  // Helpers
         return r;
     }
 
-    void spurt(const String& fn, const String& content) {
+    bool spurt(const String& fn, const String& content) {
         File f = ESPFS.open(fn, "w");
-        f.print(content);
+        if (!f)
+            return false;
+        auto w = f.print(content);
         f.close();
+        return w == content.length();
     }
 
     String pwgen() {
@@ -72,7 +75,7 @@ namespace {  // Helpers
         long max = LONG_MAX;
 
         String filename() { String fn = "/"; fn += name; return fn; }
-        void store() { if (name && name.length()) spurt(filename(), value); }
+        bool store() { return (name && name.length())? spurt(filename(), value): true; }
         void fill() { if (name && name.length()) value = slurp(filename()); }
         virtual void set(const String&) = 0;
         virtual String html() = 0;
@@ -337,16 +340,19 @@ void WiFiSettingsClass::portal() {
     });
 
     http.on("/", HTTP_POST, [this]() {
-        spurt("/wifi-ssid", http.arg("ssid"));
+        bool stored = spurt("/wifi-ssid", http.arg("ssid"));
 
         String pw = http.arg("password");
         if (pw != "##**##**##**") {
-            spurt("/wifi-password", pw);
+            stored = stored && spurt("/wifi-password", pw);
         }
 
-        for (auto p : params) { p->set(http.arg(p->name)); p->store(); }
+        for (auto p : params) { p->set(http.arg(p->name)); stored = stored && p->store(); }
 
-        http.sendHeader("Location", "/");
+        if (!stored) {
+            Serial.println(F("ERROR storing on FS");
+        }
+        http.sendHeader("Location", stored? "/": "/fserror");
         http.send(302, "text/plain", "ok");
         if (onConfigSaved) onConfigSaved();
     });
@@ -355,6 +361,13 @@ void WiFiSettingsClass::portal() {
         http.send(200, "text/plain", "Doei!");
         if (onRestart) onRestart();
         ESP.restart();
+    });
+
+    http.on("/fserror", HTTP_GET, [this]() {
+        http.send(200, "text/html", F("<meta http-equiv=\"Refresh\" content=\"5;url=/\">"
+              "<body>"
+              "ERROR writing configuration on filesystem!" // better html?
+              "</body>"));
     });
 
     http.on("/rescan", HTTP_GET, [this]() {
