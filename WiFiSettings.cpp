@@ -127,7 +127,7 @@ namespace {  // Helpers
         // in store and fill. Abuses several member variables for completely
         // different functionality.
 
-        virtual void set(const String& v) { }
+        virtual void set(const String& v) { (void)v; }
         String html() {
             int space = value.indexOf(" ");
 
@@ -411,7 +411,7 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     WiFi.begin(ssid.c_str(), pw.c_str());
 
     unsigned long starttime = millis();
-    while (WiFi.status() != WL_CONNECTED && (wait_seconds < 0 || (millis() - starttime) < wait_seconds * 1000)) {
+    while (WiFi.status() != WL_CONNECTED && (wait_seconds < 0 || (millis() - starttime) < (unsigned)wait_seconds * 1000)) {
         Serial.print(".");
         delay(onWaitLoop ? onWaitLoop() : 100);
     }
