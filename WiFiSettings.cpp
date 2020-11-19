@@ -229,9 +229,11 @@ void WiFiSettingsClass::heading(const String& contents, bool escape) {
 
 
 void WiFiSettingsClass::portal() {
-    static WebServer http(80);
-    static DNSServer dns;
     static int num_networks = -1;
+    static WebServer* http;
+    static DNSServer* dns;
+    http = new WebServer(80);
+    dns = new DNSServer;
     begin();
 
     #ifdef ESP32
@@ -249,18 +251,18 @@ void WiFiSettingsClass::portal() {
         WiFi.softAP(hostname.c_str());
     }
     delay(500);
-    dns.setTTL(0);
-    dns.start(53, "*", WiFi.softAPIP());
+    dns->setTTL(0);
+    dns->start(53, "*", WiFi.softAPIP());
 
     if (onPortal) onPortal();
     Serial.println(WiFi.softAPIP().toString());
 
-    http.on("/", HTTP_GET, [this]() {
-        http.setContentLength(CONTENT_LENGTH_UNKNOWN);
-        http.send(200, "text/html");
-        http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
-        http.sendContent(html_entities(hostname));
-        http.sendContent(F("</title>"
+    http->on("/", HTTP_GET, [this]() {
+        http->setContentLength(CONTENT_LENGTH_UNKNOWN);
+        http->send(200, "text/html");
+        http->sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
+        http->sendContent(html_entities(hostname));
+        http->sendContent(F("</title>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
             "<style>"
             "*{box-sizing:border-box} "
@@ -281,8 +283,8 @@ void WiFiSettingsClass::portal() {
             "</style>"
             "<form action=/restart method=post>Hello, my name is "
         ));
-        http.sendContent(html_entities(hostname));
-        http.sendContent(F(
+        http->sendContent(html_entities(hostname));
+        http->sendContent(F(
                 "."
                 "<p><input type=submit value='Restart device'>"
             "</form>"
@@ -295,7 +297,7 @@ void WiFiSettingsClass::portal() {
         if (num_networks < 0) num_networks = WiFi.scanNetworks();
         Serial.printf("%d WiFi networks found.\n", num_networks);
 
-        http.sendContent(F(
+        http->sendContent(F(
             "<style>.s{display:none}</style>"   // hide "scanning"
             "<select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">"
         ));
@@ -311,80 +313,80 @@ void WiFiSettingsClass::portal() {
             opt.replace("{ssid}", html_entities(ssid));
             opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
             opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
-            http.sendContent(opt);
+            http->sendContent(opt);
 
             if (ssid == current) found = true;
         }
         if (!found && current.length()) {
             String opt = F("<option value='{ssid}' selected>{ssid} (&#x26a0; not in range)</option>");
             opt.replace("{ssid}", html_entities(current));
-            http.sendContent(opt);
+            http->sendContent(opt);
         }
 
-        http.sendContent(F("</select></label> "
+        http->sendContent(F("</select></label> "
                 "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
                 "<p><label>WiFi WEP/WPA password:<br>"
                 "<input name=password value='"
         ));
-        if (slurp("/wifi-password").length()) http.sendContent("##**##**##**");
-        http.sendContent(F("'></label><hr>"));
+        if (slurp("/wifi-password").length()) http->sendContent("##**##**##**");
+        http->sendContent(F("'></label><hr>"));
 
         for (auto p : params) {
-            http.sendContent(p->html());
+            http->sendContent(p->html());
         }
 
-        http.sendContent(F(
+        http->sendContent(F(
             "<p style='position:sticky;bottom:0;text-align:right'>"
             "<input type=submit value=Save style='font-size:150%'></form>"
         ));
     });
 
-    http.on("/", HTTP_POST, [this]() {
+    http->on("/", HTTP_POST, [this]() {
         bool ok = true;
-        if (! spurt("/wifi-ssid", http.arg("ssid"))) ok = false;
+        if (! spurt("/wifi-ssid", http->arg("ssid"))) ok = false;
 
-        String pw = http.arg("password");
+        String pw = http->arg("password");
         if (pw != "##**##**##**") {
             if (! spurt("/wifi-password", pw)) ok = false;
         }
 
         for (auto p : params) {
-            p->set(http.arg(p->name));
+            p->set(http->arg(p->name));
             if (! p->store()) ok = false;
         }
 
         if (ok) {
-            http.sendHeader("Location", "/");
-            http.send(302, "text/plain", "ok");
+            http->sendHeader("Location", "/");
+            http->send(302, "text/plain", "ok");
             if (onConfigSaved) onConfigSaved();
         } else {
             // Could be missing SPIFFS.begin(), unformatted filesystem, or broken flash.
-            http.send(500, "text/plain", F("Error while writing to flash filesystem."));
+            http->send(500, "text/plain", F("Error while writing to flash filesystem."));
         }
     });
 
-    http.on("/restart", HTTP_POST, [this]() {
-        http.send(200, "text/plain", "Doei!");
+    http->on("/restart", HTTP_POST, [this]() {
+        http->send(200, "text/plain", "Doei!");
         if (onRestart) onRestart();
         ESP.restart();
     });
 
-    http.on("/rescan", HTTP_GET, [this]() {
-        http.sendHeader("Location", "/");
-        http.send(302, "text/plain", "wait for it...");
+    http->on("/rescan", HTTP_GET, [this]() {
+        http->sendHeader("Location", "/");
+        http->send(302, "text/plain", "wait for it...");
         num_networks = WiFi.scanNetworks();
     });
 
-    http.onNotFound([this]() {
-        http.sendHeader("Location", "http://" + hostname + "/");
-        http.send(302, "text/plain", "hoi");
+    http->onNotFound([this]() {
+        http->sendHeader("Location", "http://" + hostname + "/");
+        http->send(302, "text/plain", "hoi");
     });
 
-    http.begin();
+    http->begin();
 
     for (;;) {
-        http.handleClient();
-        dns.processNextRequest();
+        http->handleClient();
+        dns->processNextRequest();
         if (onPortalWaitLoop) onPortalWaitLoop();
         esp_task_wdt_reset();
         delay(1);
