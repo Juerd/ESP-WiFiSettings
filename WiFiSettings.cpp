@@ -229,9 +229,9 @@ void WiFiSettingsClass::heading(const String& contents, bool escape) {
 
 
 void WiFiSettingsClass::portal() {
-    static WebServer http(80);
-    static DNSServer dns;
-    static int num_networks = -1;
+    WebServer http(80);
+    DNSServer dns;
+    int num_networks = -1;
     begin();
 
     #ifdef ESP32
@@ -255,7 +255,7 @@ void WiFiSettingsClass::portal() {
     if (onPortal) onPortal();
     Serial.println(WiFi.softAPIP().toString());
 
-    http.on("/", HTTP_GET, [this]() {
+    http.on("/", HTTP_GET, [this, &http, &num_networks]() {
         http.setContentLength(CONTENT_LENGTH_UNKNOWN);
         http.send(200, "text/html");
         http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
@@ -339,7 +339,7 @@ void WiFiSettingsClass::portal() {
         ));
     });
 
-    http.on("/", HTTP_POST, [this]() {
+    http.on("/", HTTP_POST, [this, &http]() {
         bool ok = true;
         if (! spurt("/wifi-ssid", http.arg("ssid"))) ok = false;
 
@@ -363,19 +363,19 @@ void WiFiSettingsClass::portal() {
         }
     });
 
-    http.on("/restart", HTTP_POST, [this]() {
+    http.on("/restart", HTTP_POST, [this, &http]() {
         http.send(200, "text/plain", "Doei!");
         if (onRestart) onRestart();
         ESP.restart();
     });
 
-    http.on("/rescan", HTTP_GET, [this]() {
+    http.on("/rescan", HTTP_GET, [this, &http, &num_networks]() {
         http.sendHeader("Location", "/");
         http.send(302, "text/plain", "wait for it...");
         num_networks = WiFi.scanNetworks();
     });
 
-    http.onNotFound([this]() {
+    http.onNotFound([this, &http]() {
         http.sendHeader("Location", "http://" + hostname + "/");
         http.send(302, "text/plain", "hoi");
     });
