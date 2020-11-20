@@ -216,11 +216,11 @@ void WiFiSettingsClass::html(const String& tag, const String& contents, bool esc
 }
 
 void WiFiSettingsClass::info(const String& contents, bool escape) {
-    html("p class=i", contents, escape);
+    html(F("p class=i"), contents, escape);
 }
 
 void WiFiSettingsClass::warning(const String& contents, bool escape) {
-    html("p class=w", contents, escape);
+    html(F("p class=w"), contents, escape);
 }
 
 void WiFiSettingsClass::heading(const String& contents, bool escape) {
@@ -293,7 +293,8 @@ void WiFiSettingsClass::portal() {
         ));
 
         if (num_networks < 0) num_networks = WiFi.scanNetworks();
-        Serial.printf("%d WiFi networks found.\n", num_networks);
+        Serial.print(num_networks, DEC);
+        Serial.println(F(" WiFi networks found."));
 
         http.sendContent(F(
             "<style>.s{display:none}</style>"   // hide "scanning"
@@ -371,7 +372,7 @@ void WiFiSettingsClass::portal() {
 
     http.on("/rescan", HTTP_GET, [this, &http, &num_networks]() {
         http.sendHeader("Location", "/");
-        http.send(302, "text/plain", "wait for it...");
+        http.send(302, "text/plain", F("wait for it..."));
         num_networks = WiFi.scanNetworks();
     });
 
@@ -399,11 +400,12 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     String ssid = slurp("/wifi-ssid");
     String pw = slurp("/wifi-password");
     if (ssid.length() == 0) {
-        Serial.println("First contact!\n");
+        Serial.println(F("First contact!\n"));
         this->portal();
     }
 
-    Serial.printf("Connecting to WiFi SSID '%s'", ssid.c_str());
+    Serial.print(F("Connecting to WiFi SSID "));
+    Serial.print(ssid);
     if (onConnect) onConnect();
 
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);  // arduino-esp32 #2537
@@ -417,7 +419,7 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     }
 
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println(" failed.");
+        Serial.println(F(" failed."));
         if (onFailure) onFailure();
         if (portal) this->portal();
         return false;
@@ -437,7 +439,7 @@ void WiFiSettingsClass::begin() {
 
     if (!secure) {
         secure = checkbox(
-            "WiFiSettings-secure",
+            F("WiFiSettings-secure"),
             false,
             F("Protect the configuration portal with a WiFi password")
         );
@@ -445,7 +447,7 @@ void WiFiSettingsClass::begin() {
 
     if (!password.length()) {
         password = string(
-            "WiFiSettings-password",
+            F("WiFiSettings-password"),
             8, 63,
             "",
             F("WiFi password for the configuration portal")
@@ -464,9 +466,9 @@ void WiFiSettingsClass::begin() {
 
 WiFiSettingsClass::WiFiSettingsClass() {
     #ifdef ESP32
-        hostname = "esp32-";
+        hostname = F("esp32-");
     #else
-        hostname = "esp8266-";
+        hostname = F("esp8266-");
     #endif
 }
 
