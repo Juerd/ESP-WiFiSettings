@@ -7,7 +7,8 @@
 class WiFiSettingsClass {
     public:
         typedef std::function<void(void)> TCallback;
-        typedef std::function<int(void)> TCallbackInt;
+        typedef std::function<int(void)> TCallbackReturnsInt;
+        typedef std::function<void(String&)> TCallbackString;
 
         WiFiSettingsClass();
         void begin();
@@ -29,10 +30,12 @@ class WiFiSettingsClass {
         bool secure;
 
         TCallback onConnect;
-        TCallbackInt onWaitLoop;
+        TCallbackReturnsInt onWaitLoop;
         TCallback onSuccess;
         TCallback onFailure;
         TCallback onPortal;
+        TCallback onPortalView;
+        TCallbackString onUserAgent;
         TCallback onConfigSaved;
         TCallback onRestart;
         TCallback onPortalWaitLoop;

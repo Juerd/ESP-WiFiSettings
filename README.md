@@ -34,7 +34,7 @@
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Wed 11 Nov 2020 05:37:25 AM CET -->
+<!-- Added by: juerd, at: Sat 26 Dec 2020 03:40:46 AM CET -->
 
 <!--te-->
 
@@ -178,6 +178,8 @@ Calls the following callbacks:
 
 * WiFiSettings.onPortal
 * WiFiSettings.onPortalWaitLoop
+* WiFiSettings.onPortalView
+* WiFiSettings.onUserAgent(String& ua)
 * WiFiSettings.onConfigSaved
 * WiFiSettings.onRestart
 

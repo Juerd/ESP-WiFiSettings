@@ -274,6 +274,12 @@ void WiFiSettingsClass::portal() {
     http.on("/", HTTP_GET, [this, &http, &num_networks, &redirect]() {
         if (redirect()) return;
 
+        String ua = http.header("User-Agent");
+        bool interactive = !ua.startsWith(F("CaptiveNetworkSupport"));
+
+        if (interactive && onPortalView) onPortalView();
+        if (onUserAgent) onUserAgent(ua);
+
         http.setContentLength(CONTENT_LENGTH_UNKNOWN);
         http.send(200, "text/html");
         http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
@@ -311,7 +317,7 @@ void WiFiSettingsClass::portal() {
         ));
 
         // Don't waste time scanning in captive portal detection (Apple)
-        if (! http.header("User-Agent").startsWith(F("CaptiveNetworkSupport"))) {
+        if (interactive) {
             if (num_networks < 0) num_networks = WiFi.scanNetworks();
             Serial.print(num_networks, DEC);
             Serial.println(F(" WiFi networks found."));
