@@ -253,9 +253,27 @@ void WiFiSettingsClass::portal() {
     dns.start(53, "*", WiFi.softAPIP());
 
     if (onPortal) onPortal();
-    Serial.println(WiFi.softAPIP().toString());
+    String ip = WiFi.softAPIP().toString();
+    Serial.println(ip);
 
-    http.on("/", HTTP_GET, [this, &http, &num_networks]() {
+    auto redirect = [&http, &ip]() {
+        // iPhone doesn't deal well with redirects to http://hostname/ and
+        // will wait 40 to 60 seconds before succesful retry. Works flawlessly
+        // with http://ip/ though.
+        if (http.hostHeader() == ip) return false;
+
+        http.sendHeader("Location", "http://" + ip + "/");
+        // Anecdotally, some devices require a non-empty response body
+        http.send(302, "text/plain", ip);
+        return true;
+    };
+
+    const char* headers[] = {"User-Agent"};
+    http.collectHeaders(headers, sizeof(headers) / sizeof(char*));
+
+    http.on("/", HTTP_GET, [this, &http, &num_networks, &redirect]() {
+        if (redirect()) return;
+
         http.setContentLength(CONTENT_LENGTH_UNKNOWN);
         http.send(200, "text/html");
         http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
@@ -292,9 +310,12 @@ void WiFiSettingsClass::portal() {
                 "<label>SSID:<br><b class=s>Scanning for WiFi networks...</b>"
         ));
 
-        if (num_networks < 0) num_networks = WiFi.scanNetworks();
-        Serial.print(num_networks, DEC);
-        Serial.println(F(" WiFi networks found."));
+        // Don't waste time scanning in captive portal detection (Apple)
+        if (! http.header("User-Agent").startsWith(F("CaptiveNetworkSupport"))) {
+            if (num_networks < 0) num_networks = WiFi.scanNetworks();
+            Serial.print(num_networks, DEC);
+            Serial.println(F(" WiFi networks found."));
+        }
 
         http.sendContent(F(
             "<style>.s{display:none}</style>"   // hide "scanning"
@@ -376,9 +397,9 @@ void WiFiSettingsClass::portal() {
         num_networks = WiFi.scanNetworks();
     });
 
-    http.onNotFound([this, &http]() {
-        http.sendHeader("Location", "http://" + hostname + "/");
-        http.send(302, "text/plain", "hoi");
+    http.onNotFound([this, &http, &redirect]() {
+        if (redirect()) return;
+        http.send(404, "text/plain", "404");
     });
 
     http.begin();
