@@ -7,7 +7,6 @@ struct Texts {
         *title,
         *portal_wpa,
         *portal_password,
-        *init,
         *wait,
         *bye,
         *error_fs,
@@ -20,6 +19,9 @@ struct Texts {
         *ssid,
         *wifi_password,
         *language
+    ;
+    const char
+        *init
     ;
 };
 
@@ -58,7 +60,7 @@ bool select(Texts& T, String& language) {
         T.title = F("Configuration");
         T.portal_wpa = F("Protect the configuration portal with a WiFi password");
         T.portal_password = F("WiFi password for the configuration portal");
-        T.init = F("default");
+        T.init = "default";
         T.wait = F("Wait for it...");
         T.bye = F("Bye!");
         T.error_fs = F("Error while writing to flash filesystem.");
@@ -80,7 +82,7 @@ bool select(Texts& T, String& language) {
         T.title = F("Configuratie");
         T.portal_wpa = F("Beveilig de configuratieportal met een WiFi-wachtwoord");
         T.portal_password = F("WiFi-wachtwoord voor de configuratieportal");
-        T.init = F("standaard");
+        T.init = "standaard";
         T.wait = F("Even wachten...");
         T.bye = F("Doei!");
         T.error_fs = F("Fout bij het schrijven naar het flash-bestandssysteem.");
