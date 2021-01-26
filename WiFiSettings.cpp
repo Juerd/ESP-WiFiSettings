@@ -27,7 +27,7 @@
 #include <vector>
 #include <WiFiSettings_strings.h>
 
-WiFiSettingsLanguage::Texts T;
+WiFiSettingsLanguage::Texts _WSL_T;
 
 #define Sprintf(f, ...) ({ char* s; asprintf(&s, f, __VA_ARGS__); String r = s; free(s); r; })
 
@@ -119,7 +119,7 @@ namespace {  // Helpers
         String html() {
             String h = F("<p><label class=c><input type=checkbox name='{name}' value=1{checked}> {label} ({default}: {init})</label>");
             h.replace("{name}", html_entities(name));
-            h.replace("{default}", T.init);
+            h.replace("{default}", _WSL_T.init);
             h.replace("{checked}", value.toInt() ? " checked" : "");
             h.replace("{init}", init.toInt() ? "&#x2611;" : "&#x2610;");
             h.replace("{label}", html_entities(label));
@@ -310,13 +310,13 @@ void WiFiSettingsClass::portal() {
             "<form action=/restart method=post>"
         ));
         http.sendContent(F("<input type=submit value=\""));
-        http.sendContent(T.button_restart);
+        http.sendContent(_WSL_T.button_restart);
         http.sendContent(F("\"></form><hr><h1>"));
-        http.sendContent(T.title);
+        http.sendContent(_WSL_T.title);
         http.sendContent(F("</h1><form method=post><label>"));
-        http.sendContent(T.ssid);
+        http.sendContent(_WSL_T.ssid);
         http.sendContent(F(":<br><b class=s>"));
-        http.sendContent(T.scanning_long);
+        http.sendContent(_WSL_T.scanning_long);
         http.sendContent("</b>");
 
         // Don't waste time scanning in captive portal detection (Apple)
@@ -341,7 +341,7 @@ void WiFiSettingsClass::portal() {
             opt.replace("{sel}",  ssid == current && !found ? " selected" : "");
             opt.replace("{ssid}", html_entities(ssid));
             opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
-            opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? T.dot1x : F(""));
+            opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? _WSL_T.dot1x : F(""));
             http.sendContent(opt);
 
             if (ssid == current) found = true;
@@ -353,19 +353,19 @@ void WiFiSettingsClass::portal() {
         }
 
         http.sendContent(F("</select></label> <a href=/rescan onclick=\"this.innerHTML='"));
-        http.sendContent(T.scanning_short);
+        http.sendContent(_WSL_T.scanning_short);
         http.sendContent("';\">");
-        http.sendContent(T.rescan);
+        http.sendContent(_WSL_T.rescan);
         http.sendContent(F("</a><p><label>"));
 
-        http.sendContent(T.wifi_password);
+        http.sendContent(_WSL_T.wifi_password);
         http.sendContent(F(":<br><input name=password value='"));
         if (slurp("/wifi-password").length()) http.sendContent("##**##**##**");
         http.sendContent(F("'></label><hr>"));
 
         if (WiFiSettingsLanguage::multiple()) {
             http.sendContent(F("<label>")); 
-            http.sendContent(T.language); 
+            http.sendContent(_WSL_T.language); 
             http.sendContent(F(":<br><select name=language>"));
 
             for (auto& lang : WiFiSettingsLanguage::languages) {
@@ -386,7 +386,7 @@ void WiFiSettingsClass::portal() {
             "<p style='position:sticky;bottom:0;text-align:right'>"
             "<input type=submit value=\""
         ));
-        http.sendContent(T.button_save);
+        http.sendContent(_WSL_T.button_save);
         http.sendContent(F("\"style='font-size:150%'></form>"));
     });
 
@@ -418,19 +418,19 @@ void WiFiSettingsClass::portal() {
             if (onConfigSaved) onConfigSaved();
         } else {
             // Could be missing SPIFFS.begin(), unformatted filesystem, or broken flash.
-            http.send(500, "text/plain", T.error_fs);
+            http.send(500, "text/plain", _WSL_T.error_fs);
         }
     });
 
     http.on("/restart", HTTP_POST, [this, &http]() {
-        http.send(200, "text/plain", T.bye);
+        http.send(200, "text/plain", _WSL_T.bye);
         if (onRestart) onRestart();
         ESP.restart();
     });
 
     http.on("/rescan", HTTP_GET, [this, &http, &num_networks]() {
         http.sendHeader("Location", "/");
-        http.send(302, "text/plain", T.wait);
+        http.send(302, "text/plain", _WSL_T.wait);
         num_networks = WiFi.scanNetworks();
     });
 
@@ -500,13 +500,13 @@ void WiFiSettingsClass::begin() {
     if (user_language.length() && WiFiSettingsLanguage::available(user_language)) {
         language = user_language;
     }
-    WiFiSettingsLanguage::select(T, language);  // can update language
+    WiFiSettingsLanguage::select(_WSL_T, language);  // can update language
 
     if (!secure) {
         secure = checkbox(
             F("WiFiSettings-secure"),
             false,
-            T.portal_wpa
+            _WSL_T.portal_wpa
         );
     }
 
@@ -515,7 +515,7 @@ void WiFiSettingsClass::begin() {
             F("WiFiSettings-password"),
             8, 63,
             "",
-            T.portal_password
+            _WSL_T.portal_password
         );
         if (password == "") {
             // With regular 'init' semantics, the password would be changed
