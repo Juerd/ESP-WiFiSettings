@@ -30,11 +30,12 @@
             * [WiFiSettings.hostname](#wifisettingshostname)
             * [WiFiSettings.password](#wifisettingspassword)
             * [WiFiSettings.secure](#wifisettingssecure)
+            * [WiFiSettings.language](#wifisettingslanguage)
             * [WiFiSettings.on*](#wifisettingson)
       * [History](#history)
       * [A note about Hyrum's Law](#a-note-about-hyrums-law)
 
-<!-- Added by: juerd, at: Sat 26 Dec 2020 03:40:46 AM CET -->
+<!-- Added by: juerd, at: Tue 26 Jan 2021 04:37:05 AM CET -->
 
 <!--te-->
 
@@ -304,6 +305,30 @@ to the user, for example with an LCD display, or
 `Serial.println(WiFiSettings.password);`. Having hard coded password literals
 in source code is generally considered a bad idea, because that makes it harder
 to share the code with others.
+
+#### WiFiSettings.language
+
+```C++
+String
+```
+
+The language to be used in the WiFiSettings portal. Currently supported are
+`en` and `nl`. Once the user has picked a language in the portal, the user
+setting overrides any value previously assigned. This variable is updated to
+reflect the currently selected language.
+
+By default, all available languages are available. To conserve flash storage
+space, it is possible to select only specific languages, by specifying build
+flags such as `LANGUAGE_EN`. If only a single language is defined, this
+language will be used regardless of any configuration, and no language
+drop-down is presented to the user. Note: build flags are not available in the
+Arduino IDE, but can be specified in Arduino board files. In PlatformIO, build
+flags can be specified in the `[env]` section, e.g. `build_flags =
+-DLANGUAGE_EN`.
+
+*If you wish to contribute a translation, please refer to
+`WiFiSettings_strings.h`. (Note: due to storage constraints on microcontroller
+flash filesystems, only widely used natural languages will be included.)*
 
 #### WiFiSettings.on*
 

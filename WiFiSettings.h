@@ -28,6 +28,7 @@ class WiFiSettingsClass {
         String hostname;
         String password;
         bool secure;
+        String language;
 
         TCallback onConnect;
         TCallbackReturnsInt onWaitLoop;

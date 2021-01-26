@@ -25,6 +25,9 @@
 #include <DNSServer.h>
 #include <limits.h>
 #include <vector>
+#include <WiFiSettings_strings.h>
+
+WiFiSettingsLanguage::Texts T;
 
 #define Sprintf(f, ...) ({ char* s; asprintf(&s, f, __VA_ARGS__); String r = s; free(s); r; })
 
@@ -114,8 +117,9 @@ namespace {  // Helpers
     struct WiFiSettingsBool : WiFiSettingsParameter {
         virtual void set(const String& v) { value = v.length() ? "1" : "0"; }
         String html() {
-            String h = F("<p><label class=c><input type=checkbox name='{name}' value=1{checked}> {label} (default: {init})</label>");
+            String h = F("<p><label class=c><input type=checkbox name='{name}' value=1{checked}> {label} ({default}: {init})</label>");
             h.replace("{name}", html_entities(name));
+            h.replace("{default}", T.init);
             h.replace("{checked}", value.toInt() ? " checked" : "");
             h.replace("{init}", init.toInt() ? "&#x2611;" : "&#x2610;");
             h.replace("{label}", html_entities(label));
@@ -303,18 +307,17 @@ void WiFiSettingsClass::portal() {
             ".w,.i{display:block;padding:.5ex .5ex .5ex 3em}"
             ".w,.i{background:#aaa;min-height:3em}"
             "</style>"
-            "<form action=/restart method=post>Hello, my name is "
+            "<form action=/restart method=post>"
         ));
-        http.sendContent(html_entities(hostname));
-        http.sendContent(F(
-                "."
-                "<p><input type=submit value='Restart device'>"
-            "</form>"
-            "<hr>"
-            "<h1>Configuration</h1>"
-            "<form method=post>"
-                "<label>SSID:<br><b class=s>Scanning for WiFi networks...</b>"
-        ));
+        http.sendContent(F("<input type=submit value=\""));
+        http.sendContent(T.button_restart);
+        http.sendContent(F("\"></form><hr><h1>"));
+        http.sendContent(T.title);
+        http.sendContent(F("</h1><form method=post><label>"));
+        http.sendContent(T.ssid);
+        http.sendContent(F(":<br><b class=s>"));
+        http.sendContent(T.scanning_long);
+        http.sendContent("</b>");
 
         // Don't waste time scanning in captive portal detection (Apple)
         if (interactive) {
@@ -338,7 +341,7 @@ void WiFiSettingsClass::portal() {
             opt.replace("{sel}",  ssid == current && !found ? " selected" : "");
             opt.replace("{ssid}", html_entities(ssid));
             opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
-            opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? "(won't work: 802.1x is not supported)" : "");
+            opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? T.dot1x : F(""));
             http.sendContent(opt);
 
             if (ssid == current) found = true;
@@ -349,34 +352,62 @@ void WiFiSettingsClass::portal() {
             http.sendContent(opt);
         }
 
-        http.sendContent(F("</select></label> "
-                "<a href=/rescan onclick=\"this.innerHTML='scanning...';\">rescan</a>"
-                "<p><label>WiFi WEP/WPA password:<br>"
-                "<input name=password value='"
-        ));
+        http.sendContent(F("</select></label> <a href=/rescan onclick=\"this.innerHTML='"));
+        http.sendContent(T.scanning_short);
+        http.sendContent("';\">");
+        http.sendContent(T.rescan);
+        http.sendContent(F("</a><p><label>"));
+
+        http.sendContent(T.wifi_password);
+        http.sendContent(F(":<br><input name=password value='"));
         if (slurp("/wifi-password").length()) http.sendContent("##**##**##**");
         http.sendContent(F("'></label><hr>"));
 
-        for (auto p : params) {
+        if (WiFiSettingsLanguage::multiple()) {
+            http.sendContent(F("<label>")); 
+            http.sendContent(T.language); 
+            http.sendContent(F(":<br><select name=language>"));
+
+            for (auto& lang : WiFiSettingsLanguage::languages) {
+                String opt = F("<option value='{code}'{sel}>{name}</option>");
+                opt.replace("{code}", lang.first);
+                opt.replace("{name}", lang.second);
+                opt.replace("{sel}", language == lang.first ? " selected" : "");
+                http.sendContent(opt);
+            }
+            http.sendContent(F("</select></label>"));
+        }
+
+        for (auto& p : params) {
             http.sendContent(p->html());
         }
 
         http.sendContent(F(
             "<p style='position:sticky;bottom:0;text-align:right'>"
-            "<input type=submit value=Save style='font-size:150%'></form>"
+            "<input type=submit value=\""
         ));
+        http.sendContent(T.button_save);
+        http.sendContent(F("\"style='font-size:150%'></form>"));
     });
 
     http.on("/", HTTP_POST, [this, &http]() {
         bool ok = true;
         if (! spurt("/wifi-ssid", http.arg("ssid"))) ok = false;
 
+        if (WiFiSettingsLanguage::multiple()) {
+            if (! spurt("/WiFiSettings-language", http.arg("language"))) ok = false;
+            // Don't update immediately, because there is currently
+            // no mechanism for reloading param strings.
+            //language = http.arg("language");
+            //WiFiSettingsLanguage::select(T, language);
+        }
+
         String pw = http.arg("password");
         if (pw != "##**##**##**") {
             if (! spurt("/wifi-password", pw)) ok = false;
         }
 
-        for (auto p : params) {
+        for (auto& p : params) {
             p->set(http.arg(p->name));
             if (! p->store()) ok = false;
         }
@@ -387,19 +418,19 @@ void WiFiSettingsClass::portal() {
             if (onConfigSaved) onConfigSaved();
         } else {
             // Could be missing SPIFFS.begin(), unformatted filesystem, or broken flash.
-            http.send(500, "text/plain", F("Error while writing to flash filesystem."));
+            http.send(500, "text/plain", T.error_fs);
         }
     });
 
     http.on("/restart", HTTP_POST, [this, &http]() {
-        http.send(200, "text/plain", "Doei!");
+        http.send(200, "text/plain", T.bye);
         if (onRestart) onRestart();
         ESP.restart();
     });
 
     http.on("/rescan", HTTP_GET, [this, &http, &num_networks]() {
         http.sendHeader("Location", "/");
-        http.send(302, "text/plain", F("wait for it..."));
+        http.send(302, "text/plain", T.wait);
         num_networks = WiFi.scanNetworks();
     });
 
@@ -464,11 +495,18 @@ void WiFiSettingsClass::begin() {
     // These things can't go in the constructor because the constructor runs
     // before ESPFS.begin()
 
+    String user_language = slurp("/WiFiSettings-language");
+    user_language.trim();
+    if (user_language.length() && WiFiSettingsLanguage::available(user_language)) {
+        language = user_language;
+    }
+    WiFiSettingsLanguage::select(T, language);  // can update language
+
     if (!secure) {
         secure = checkbox(
             F("WiFiSettings-secure"),
             false,
-            F("Protect the configuration portal with a WiFi password")
+            T.portal_wpa
         );
     }
 
@@ -477,7 +515,7 @@ void WiFiSettingsClass::begin() {
             F("WiFiSettings-password"),
             8, 63,
             "",
-            F("WiFi password for the configuration portal")
+            T.portal_password
         );
         if (password == "") {
             // With regular 'init' semantics, the password would be changed
@@ -497,6 +535,8 @@ WiFiSettingsClass::WiFiSettingsClass() {
     #else
         hostname = F("esp8266-");
     #endif
+
+    language = "en";
 }
 
 WiFiSettingsClass WiFiSettings;
