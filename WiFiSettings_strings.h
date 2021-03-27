@@ -27,12 +27,16 @@ struct Texts {
 
 #if \
    !defined LANGUAGE_EN \
-&& !defined LANGUAGE_NL
+&& !defined LANGUAGE_NL \
+&& !defined LANGUAGE_DE
     #define LANGUAGE_ALL
 #endif
 
 std::map<const String, const String> languages {
 // Ordered alphabetically
+#if defined LANGUAGE_DE || defined LANGUAGE_ALL
+    { "de", "Deutsch" },
+#endif
 #if defined LANGUAGE_EN || defined LANGUAGE_ALL
     { "en", "English" },
 #endif
@@ -95,6 +99,28 @@ bool select(Texts& T, String& language) {
         T.ssid = F("WiFi-netwerknaam (SSID)");
         T.wifi_password = F("WiFi-wachtwoord");
         T.language = F("Taal");
+        return true;
+    }
+#endif
+
+#if defined LANGUAGE_EN || defined LANGUAGE_ALL
+    if (language == "de") {
+        T.title = F("Konfiguration");
+        T.portal_wpa = F("Das Konfigurationsportal mit einem Passwort schützen");
+        T.portal_password = F("Passwort für das Konfigurationsportal");
+        T.init = "Standard";
+        T.wait = F("Warten...");
+        T.bye = F("Tschüss!");
+        T.error_fs = F("Fehler beim Schreiben auf das Flash-Dateisystem");
+        T.button_save = F("Speichern");
+        T.button_restart = F("Gerät neustarten");
+        T.scanning_short = F("Suchen...");
+        T.scanning_long = F("Suche nach WiFi-Netzwerken...");
+        T.rescan = F("Erneut suchen");
+        T.dot1x = F("(nicht möglich: 802.1x nicht unterstützt)");
+        T.ssid = F("WiFi Netzwerkname (SSID)");
+        T.wifi_password = F("WiFi Passwort");
+        T.language = F("Sprache");
         return true;
     }
 #endif
