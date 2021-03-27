@@ -117,7 +117,7 @@ bool select(Texts& T, String& language) {
         T.scanning_short = F("Suchen...");
         T.scanning_long = F("Suche nach WiFi-Netzwerken...");
         T.rescan = F("Erneut suchen");
-        T.dot1x = F("(nicht möglich:: 802.1x nicht unterstützt)");
+        T.dot1x = F("(nicht möglich: 802.1x nicht unterstützt)");
         T.ssid = F("WiFi Netzwerkname (SSID)");
         T.wifi_password = F("WiFi Passwort");
         T.language = F("Sprache");
