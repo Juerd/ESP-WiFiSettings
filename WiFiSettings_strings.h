@@ -103,7 +103,7 @@ bool select(Texts& T, String& language) {
     }
 #endif
 
-#if defined LANGUAGE_EN || defined LANGUAGE_ALL
+#if defined LANGUAGE_DE || defined LANGUAGE_ALL
     if (language == "de") {
         T.title = F("Konfiguration");
         T.portal_wpa = F("Das Konfigurationsportal mit einem Passwort schützen");
