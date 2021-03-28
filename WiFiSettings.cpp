@@ -65,7 +65,7 @@ namespace {  // Helpers
                 // printable non-whitespace ascii minus html and {}
                 r += c;
             } else {
-                r += Sprintf("&#%d;", raw.charAt(i));
+                r += raw.charAt(i);
             }
         }
         return r;
@@ -286,7 +286,7 @@ void WiFiSettingsClass::portal() {
 
         http.setContentLength(CONTENT_LENGTH_UNKNOWN);
         http.send(200, "text/html");
-        http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
+        http.sendContent(F("<!DOCTYPE html>\n<html><head><meta charset=UTF-8><title>"));
         http.sendContent(html_entities(hostname));
         http.sendContent(F("</title>"
             "<meta name=viewport content='width=device-width,initial-scale=1'>"
@@ -306,8 +306,8 @@ void WiFiSettingsClass::portal() {
             ".c{display:block;padding-left:2em}"
             ".w,.i{display:block;padding:.5ex .5ex .5ex 3em}"
             ".w,.i{background:#aaa;min-height:3em}"
-            "</style>"
-            "<form action=/restart method=post>"
+            "</style></head>"
+            "<body><form action=/restart method=post>"
         ));
         http.sendContent(F("<input type=submit value=\""));
         http.sendContent(_WSL_T.button_restart);
@@ -387,7 +387,7 @@ void WiFiSettingsClass::portal() {
             "<input type=submit value=\""
         ));
         http.sendContent(_WSL_T.button_save);
-        http.sendContent(F("\"style='font-size:150%'></form>"));
+        http.sendContent(F("\"style='font-size:150%'></form></body></html>"));
     });
 
     http.on("/", HTTP_POST, [this, &http]() {
