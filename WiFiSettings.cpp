@@ -61,8 +61,8 @@ namespace {  // Helpers
         String r;
         for (unsigned int i = 0; i < raw.length(); i++) {
             char c = raw.charAt(i);
-            if (c >= '!' && c <= 'z' && c != '&' && c != '<' && c != '>' && c != '\'' && c != '"') {
-                // printable non-whitespace ascii minus html and {}
+            if ((c >= '!' && c <= 'z' && c != '&' && c != '<' && c != '>' && c != '\'' && c != '"') || c >= 0x80) {
+                // printable non-whitespace ascii and unicode minus html and {}
                 r += c;
             } else {
                 r += Sprintf("&#%d;", raw.charAt(i));
