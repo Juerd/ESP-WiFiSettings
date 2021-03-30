@@ -61,11 +61,11 @@ namespace {  // Helpers
         String r;
         for (unsigned int i = 0; i < raw.length(); i++) {
             char c = raw.charAt(i);
-            if ((c >= '!' && c <= 'z' && c != '&' && c != '<' && c != '>' && c != '\'' && c != '"') || c >= 0x80) {
-                // printable non-whitespace ascii and unicode minus html and {}
-                r += c;
+            if (c < '!' || c == '"' || c == '&' || c == '\'' || c == '<' || c == '>' || c == 0x7f) {
+                // ascii control characters, html syntax characters, and space
+                r += Sprintf("&#%d;", c);
             } else {
-                r += Sprintf("&#%d;", raw.charAt(i));
+                r += c;
             }
         }
         return r;
