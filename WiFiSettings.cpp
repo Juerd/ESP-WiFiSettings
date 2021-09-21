@@ -628,6 +628,8 @@ void WiFiSettingsClass::begin() {
     }
     WiFiSettingsLanguage::select(_WSL_T, language);  // can update language
 
+#ifdef PORTAL_PASSWORD
+
     if (!secure) {
         secure = checkbox(
             F("WiFiSettings-secure"),
@@ -651,6 +653,8 @@ void WiFiSettingsClass::begin() {
             params.back()->store();
         }
     }
+
+#endif
 
     if (hostname.endsWith("-")) hostname += ESPMAC;
 }
