@@ -136,11 +136,9 @@ namespace {  // Helpers
         String html() {
             int space = value.indexOf(" ");
 
-            String h = 
-                (value ? "<" + value + ">" : "")
-                +
-                (min ? html_entities(label) : label)
-                +
+            String h =
+                (value ? "<" + value + ">" : "") +
+                (min ? html_entities(label) : label) +
                 (value ? "</" + (space >= 0 ? value.substring(0, space) : value) + ">" : "");
             return h;
         }
@@ -231,9 +229,123 @@ void WiFiSettingsClass::heading(const String& contents, bool escape) {
     html("h2", contents, escape);
 }
 
+void WiFiSettingsClass::httpSetup()
+{
+    begin();
 
-void WiFiSettingsClass::portal() {
-    WebServer http(80);
+    http.on("/", HTTP_GET, [this]()
+            {
+                http.setContentLength(CONTENT_LENGTH_UNKNOWN);
+                http.send(200, "text/html");
+                http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
+                http.sendContent(html_entities(hostname));
+                http.sendContent(F("</title>"
+                                   "<meta name=viewport content='width=device-width,initial-scale=1'>"
+                                   "<style>"
+                                   "*{box-sizing:border-box} "
+                                   "html{background:#444;font:10pt sans-serif}"
+                                   "body{background:#ccc;color:black;max-width:30em;padding:1em;margin:1em auto}"
+                                   "a:link{color:#000} "
+                                   "label{clear:both}"
+                                   "select,input:not([type^=c]){display:block;width:100%;border:1px solid #444;padding:.3ex}"
+                                   "input[type^=s]{display:inline;width:auto;background:#de1;padding:1ex;border:1px solid #000;border-radius:1ex}"
+                                   "[type^=c]{float:left;margin-left:-1.5em}"
+                                   ":not([type^=s]):focus{outline:2px solid #d1ed1e}"
+                                   ".w::before{content:'\\26a0\\fe0f'}"
+                                   "p::before{margin-left:-2em;float:left;padding-top:1ex}"
+                                   ".i::before{content:'\\2139\\fe0f'}"
+                                   ".c{display:block;padding-left:2em}"
+                                   ".w,.i{display:block;padding:.5ex .5ex .5ex 3em}"
+                                   ".w,.i{background:#aaa;min-height:3em}"
+                                   "</style>"
+                                   "<form action=/restart method=post>"));
+                http.sendContent(F("<input type=submit value=\""));
+                http.sendContent(_WSL_T.button_restart);
+                http.sendContent(F("\"></form><hr><h1>"));
+                http.sendContent(_WSL_T.title);
+                http.sendContent(F("</h1><form method=post><label>"));
+
+                if (WiFiSettingsLanguage::multiple())
+                {
+                    http.sendContent(F("<label>"));
+                    http.sendContent(_WSL_T.language);
+                    http.sendContent(F(":<br><select name=language>"));
+
+                    for (auto &lang : WiFiSettingsLanguage::languages)
+                    {
+                        String opt = F("<option value='{code}'{sel}>{name}</option>");
+                        opt.replace("{code}", lang.first);
+                        opt.replace("{name}", lang.second);
+                        opt.replace("{sel}", language == lang.first ? " selected" : "");
+                        http.sendContent(opt);
+                    }
+                    http.sendContent(F("</select></label>"));
+                }
+
+                for (auto &p : params)
+                {
+                    http.sendContent(p->html());
+                }
+
+                http.sendContent(F(
+                    "<p style='position:sticky;bottom:0;text-align:right'>"
+                    "<input type=submit value=\""));
+                http.sendContent(_WSL_T.button_save);
+                http.sendContent(F("\"style='font-size:150%'></form>"));
+            });
+
+    http.on("/", HTTP_POST, [this]()
+            {
+                bool ok = true;
+                if (WiFiSettingsLanguage::multiple())
+                {
+                    if (!spurt("/WiFiSettings-language", http.arg("language"))) ok = false;
+                }
+
+                for (auto &p : params)
+                {
+                    p->set(http.arg(p->name));
+                    if (!p->store()) ok = false;
+                }
+
+                if (ok)
+                {
+                    http.sendHeader("Location", "/");
+                    http.send(302, "text/plain", "ok");
+                    if (onConfigSaved) onConfigSaved();
+                }
+                else
+                {
+                    // Could be missing SPIFFS.begin(), unformatted filesystem, or broken flash.
+                    http.send(500, "text/plain", _WSL_T.error_fs);
+                }
+            });
+
+    http.on("/restart", HTTP_POST, [this]()
+            {
+                http.send(200, "text/plain", _WSL_T.bye);
+                if (onRestart) onRestart();
+                ESP.restart();
+            });
+
+    http.onNotFound([this]()
+                    { http.send(404, "text/plain", "404"); });
+
+    http.begin();
+}
+
+void WiFiSettingsClass::httpLoop()
+{
+    if (!httpBegun)
+    {
+        httpBegun = true;
+        httpSetup();
+    }
+    http.handleClient();
+}
+
+void WiFiSettingsClass::portal()
+{
     DNSServer dns;
     int num_networks = -1;
     begin();
@@ -260,7 +372,8 @@ void WiFiSettingsClass::portal() {
     String ip = WiFi.softAPIP().toString();
     Serial.println(ip);
 
-    auto redirect = [&http, &ip]() {
+    auto redirect = [this, &ip]()
+    {
         // iPhone doesn't deal well with redirects to http://hostname/ and
         // will wait 40 to 60 seconds before succesful retry. Works flawlessly
         // with http://ip/ though.
@@ -275,169 +388,182 @@ void WiFiSettingsClass::portal() {
     const char* headers[] = {"User-Agent"};
     http.collectHeaders(headers, sizeof(headers) / sizeof(char*));
 
-    http.on("/", HTTP_GET, [this, &http, &num_networks, &redirect]() {
-        if (redirect()) return;
+    http.on("/", HTTP_GET, [this, &num_networks, &redirect]()
+            {
+                if (redirect()) return;
 
-        String ua = http.header("User-Agent");
-        bool interactive = !ua.startsWith(F("CaptiveNetworkSupport"));
+                String ua = http.header("User-Agent");
+                bool interactive = !ua.startsWith(F("CaptiveNetworkSupport"));
 
-        if (interactive && onPortalView) onPortalView();
-        if (onUserAgent) onUserAgent(ua);
+                if (interactive && onPortalView) onPortalView();
+                if (onUserAgent) onUserAgent(ua);
 
-        http.setContentLength(CONTENT_LENGTH_UNKNOWN);
-        http.send(200, "text/html");
-        http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
-        http.sendContent(html_entities(hostname));
-        http.sendContent(F("</title>"
-            "<meta name=viewport content='width=device-width,initial-scale=1'>"
-            "<style>"
-            "*{box-sizing:border-box} "
-            "html{background:#444;font:10pt sans-serif}"
-            "body{background:#ccc;color:black;max-width:30em;padding:1em;margin:1em auto}"
-            "a:link{color:#000} "
-            "label{clear:both}"
-            "select,input:not([type^=c]){display:block;width:100%;border:1px solid #444;padding:.3ex}"
-            "input[type^=s]{display:inline;width:auto;background:#de1;padding:1ex;border:1px solid #000;border-radius:1ex}"
-            "[type^=c]{float:left;margin-left:-1.5em}"
-            ":not([type^=s]):focus{outline:2px solid #d1ed1e}"
-            ".w::before{content:'\\26a0\\fe0f'}"
-            "p::before{margin-left:-2em;float:left;padding-top:1ex}"
-            ".i::before{content:'\\2139\\fe0f'}"
-            ".c{display:block;padding-left:2em}"
-            ".w,.i{display:block;padding:.5ex .5ex .5ex 3em}"
-            ".w,.i{background:#aaa;min-height:3em}"
-            "</style>"
-            "<form action=/restart method=post>"
-        ));
-        http.sendContent(F("<input type=submit value=\""));
-        http.sendContent(_WSL_T.button_restart);
-        http.sendContent(F("\"></form><hr><h1>"));
-        http.sendContent(_WSL_T.title);
-        http.sendContent(F("</h1><form method=post><label>"));
-        http.sendContent(_WSL_T.ssid);
-        http.sendContent(F(":<br><b class=s>"));
-        http.sendContent(_WSL_T.scanning_long);
-        http.sendContent("</b>");
+                http.setContentLength(CONTENT_LENGTH_UNKNOWN);
+                http.send(200, "text/html");
+                http.sendContent(F("<!DOCTYPE html>\n<meta charset=UTF-8><title>"));
+                http.sendContent(html_entities(hostname));
+                http.sendContent(F("</title>"
+                                   "<meta name=viewport content='width=device-width,initial-scale=1'>"
+                                   "<style>"
+                                   "*{box-sizing:border-box} "
+                                   "html{background:#444;font:10pt sans-serif}"
+                                   "body{background:#ccc;color:black;max-width:30em;padding:1em;margin:1em auto}"
+                                   "a:link{color:#000} "
+                                   "label{clear:both}"
+                                   "select,input:not([type^=c]){display:block;width:100%;border:1px solid #444;padding:.3ex}"
+                                   "input[type^=s]{display:inline;width:auto;background:#de1;padding:1ex;border:1px solid #000;border-radius:1ex}"
+                                   "[type^=c]{float:left;margin-left:-1.5em}"
+                                   ":not([type^=s]):focus{outline:2px solid #d1ed1e}"
+                                   ".w::before{content:'\\26a0\\fe0f'}"
+                                   "p::before{margin-left:-2em;float:left;padding-top:1ex}"
+                                   ".i::before{content:'\\2139\\fe0f'}"
+                                   ".c{display:block;padding-left:2em}"
+                                   ".w,.i{display:block;padding:.5ex .5ex .5ex 3em}"
+                                   ".w,.i{background:#aaa;min-height:3em}"
+                                   "</style>"
+                                   "<form action=/restart method=post>"));
+                http.sendContent(F("<input type=submit value=\""));
+                http.sendContent(_WSL_T.button_restart);
+                http.sendContent(F("\"></form><hr><h1>"));
+                http.sendContent(_WSL_T.title);
+                http.sendContent(F("</h1><form method=post><label>"));
+                http.sendContent(_WSL_T.ssid);
+                http.sendContent(F(":<br><b class=s>"));
+                http.sendContent(_WSL_T.scanning_long);
+                http.sendContent("</b>");
 
-        // Don't waste time scanning in captive portal detection (Apple)
-        if (interactive) {
-            if (num_networks < 0) num_networks = WiFi.scanNetworks();
-            Serial.print(num_networks, DEC);
-            Serial.println(F(" WiFi networks found."));
-        }
+                // Don't waste time scanning in captive portal detection (Apple)
+                if (interactive)
+                {
+                    if (num_networks < 0) num_networks = WiFi.scanNetworks();
+                    Serial.print(num_networks, DEC);
+                    Serial.println(F(" WiFi networks found."));
+                }
 
-        http.sendContent(F(
-            "<style>.s{display:none}</style>"   // hide "scanning"
-            "<select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">"
-        ));
+                http.sendContent(F(
+                    "<style>.s{display:none}</style>" // hide "scanning"
+                    "<select name=ssid onchange=\"document.getElementsByName('password')[0].value=''\">"));
 
-        String current = slurp("/wifi-ssid");
-        bool found = false;
-        for (int i = 0; i < num_networks; i++) {
-            String opt = F("<option value='{ssid}'{sel}>{ssid} {lock} {1x}</option>");
-            String ssid = WiFi.SSID(i);
-            wifi_auth_mode_t mode = WiFi.encryptionType(i);
+                String current = slurp("/wifi-ssid");
+                bool found = false;
+                for (int i = 0; i < num_networks; i++)
+                {
+                    String opt = F("<option value='{ssid}'{sel}>{ssid} {lock} {1x}</option>");
+                    String ssid = WiFi.SSID(i);
+                    wifi_auth_mode_t mode = WiFi.encryptionType(i);
 
-            opt.replace("{sel}",  ssid == current && !found ? " selected" : "");
-            opt.replace("{ssid}", html_entities(ssid));
-            opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
-            opt.replace("{1x}",   mode == WIFI_AUTH_WPA2_ENTERPRISE ? _WSL_T.dot1x : F(""));
-            http.sendContent(opt);
+                    opt.replace("{sel}", ssid == current && !found ? " selected" : "");
+                    opt.replace("{ssid}", html_entities(ssid));
+                    opt.replace("{lock}", mode != WIFI_AUTH_OPEN ? "&#x1f512;" : "");
+                    opt.replace("{1x}", mode == WIFI_AUTH_WPA2_ENTERPRISE ? _WSL_T.dot1x : F(""));
+                    http.sendContent(opt);
 
-            if (ssid == current) found = true;
-        }
-        if (!found && current.length()) {
-            String opt = F("<option value='{ssid}' selected>{ssid} (&#x26a0; not in range)</option>");
-            opt.replace("{ssid}", html_entities(current));
-            http.sendContent(opt);
-        }
+                    if (ssid == current) found = true;
+                }
+                if (!found && current.length())
+                {
+                    String opt = F("<option value='{ssid}' selected>{ssid} (&#x26a0; not in range)</option>");
+                    opt.replace("{ssid}", html_entities(current));
+                    http.sendContent(opt);
+                }
 
-        http.sendContent(F("</select></label> <a href=/rescan onclick=\"this.innerHTML='"));
-        http.sendContent(_WSL_T.scanning_short);
-        http.sendContent("';\">");
-        http.sendContent(_WSL_T.rescan);
-        http.sendContent(F("</a><p><label>"));
+                http.sendContent(F("</select></label> <a href=/rescan onclick=\"this.innerHTML='"));
+                http.sendContent(_WSL_T.scanning_short);
+                http.sendContent("';\">");
+                http.sendContent(_WSL_T.rescan);
+                http.sendContent(F("</a><p><label>"));
 
-        http.sendContent(_WSL_T.wifi_password);
-        http.sendContent(F(":<br><input name=password value='"));
-        if (slurp("/wifi-password").length()) http.sendContent("##**##**##**");
-        http.sendContent(F("'></label><hr>"));
+                http.sendContent(_WSL_T.wifi_password);
+                http.sendContent(F(":<br><input name=password value='"));
+                if (slurp("/wifi-password").length()) http.sendContent("##**##**##**");
+                http.sendContent(F("'></label><hr>"));
 
-        if (WiFiSettingsLanguage::multiple()) {
-            http.sendContent(F("<label>")); 
-            http.sendContent(_WSL_T.language); 
-            http.sendContent(F(":<br><select name=language>"));
+                if (WiFiSettingsLanguage::multiple())
+                {
+                    http.sendContent(F("<label>"));
+                    http.sendContent(_WSL_T.language);
+                    http.sendContent(F(":<br><select name=language>"));
 
-            for (auto& lang : WiFiSettingsLanguage::languages) {
-                String opt = F("<option value='{code}'{sel}>{name}</option>");
-                opt.replace("{code}", lang.first);
-                opt.replace("{name}", lang.second);
-                opt.replace("{sel}", language == lang.first ? " selected" : "");
-                http.sendContent(opt);
-            }
-            http.sendContent(F("</select></label>"));
-        }
+                    for (auto &lang : WiFiSettingsLanguage::languages)
+                    {
+                        String opt = F("<option value='{code}'{sel}>{name}</option>");
+                        opt.replace("{code}", lang.first);
+                        opt.replace("{name}", lang.second);
+                        opt.replace("{sel}", language == lang.first ? " selected" : "");
+                        http.sendContent(opt);
+                    }
+                    http.sendContent(F("</select></label>"));
+                }
 
-        for (auto& p : params) {
-            http.sendContent(p->html());
-        }
+                for (auto &p : params)
+                {
+                    http.sendContent(p->html());
+                }
 
-        http.sendContent(F(
-            "<p style='position:sticky;bottom:0;text-align:right'>"
-            "<input type=submit value=\""
-        ));
-        http.sendContent(_WSL_T.button_save);
-        http.sendContent(F("\"style='font-size:150%'></form>"));
-    });
+                http.sendContent(F(
+                    "<p style='position:sticky;bottom:0;text-align:right'>"
+                    "<input type=submit value=\""));
+                http.sendContent(_WSL_T.button_save);
+                http.sendContent(F("\"style='font-size:150%'></form>"));
+            });
 
-    http.on("/", HTTP_POST, [this, &http]() {
-        bool ok = true;
-        if (! spurt("/wifi-ssid", http.arg("ssid"))) ok = false;
+    http.on("/", HTTP_POST, [this]()
+            {
+                bool ok = true;
+                if (!spurt("/wifi-ssid", http.arg("ssid"))) ok = false;
 
-        if (WiFiSettingsLanguage::multiple()) {
-            if (! spurt("/WiFiSettings-language", http.arg("language"))) ok = false;
-            // Don't update immediately, because there is currently
-            // no mechanism for reloading param strings.
-            //language = http.arg("language");
-            //WiFiSettingsLanguage::select(T, language);
-        }
+                if (WiFiSettingsLanguage::multiple())
+                {
+                    if (!spurt("/WiFiSettings-language", http.arg("language"))) ok = false;
+                    // Don't update immediately, because there is currently
+                    // no mechanism for reloading param strings.
+                    //language = http.arg("language");
+                    //WiFiSettingsLanguage::select(T, language);
+                }
 
-        String pw = http.arg("password");
-        if (pw != "##**##**##**") {
-            if (! spurt("/wifi-password", pw)) ok = false;
-        }
+                String pw = http.arg("password");
+                if (pw != "##**##**##**")
+                {
+                    if (!spurt("/wifi-password", pw)) ok = false;
+                }
 
-        for (auto& p : params) {
-            p->set(http.arg(p->name));
-            if (! p->store()) ok = false;
-        }
+                for (auto &p : params)
+                {
+                    p->set(http.arg(p->name));
+                    if (!p->store()) ok = false;
+                }
 
-        if (ok) {
-            http.sendHeader("Location", "/");
-            http.send(302, "text/plain", "ok");
-            if (onConfigSaved) onConfigSaved();
-        } else {
-            // Could be missing SPIFFS.begin(), unformatted filesystem, or broken flash.
-            http.send(500, "text/plain", _WSL_T.error_fs);
-        }
-    });
+                if (ok) {
+                    http.sendHeader("Location", "/");
+                    http.send(302, "text/plain", "ok");
+                    if (onConfigSaved) onConfigSaved();
+                }
+                else
+                {
+                    // Could be missing SPIFFS.begin(), unformatted filesystem, or broken flash.
+                    http.send(500, "text/plain", _WSL_T.error_fs);
+                }
+            });
 
-    http.on("/restart", HTTP_POST, [this, &http]() {
-        http.send(200, "text/plain", _WSL_T.bye);
-        if (onRestart) onRestart();
-        ESP.restart();
-    });
+    http.on("/restart", HTTP_POST, [this]()
+            {
+                http.send(200, "text/plain", _WSL_T.bye);
+                if (onRestart) onRestart();
+                ESP.restart();
+            });
 
-    http.on("/rescan", HTTP_GET, [this, &http, &num_networks]() {
-        http.sendHeader("Location", "/");
-        http.send(302, "text/plain", _WSL_T.wait);
-        num_networks = WiFi.scanNetworks();
-    });
+    http.on("/rescan", HTTP_GET, [this, &num_networks]()
+            {
+                http.sendHeader("Location", "/");
+                http.send(302, "text/plain", _WSL_T.wait);
+                num_networks = WiFi.scanNetworks();
+            });
 
-    http.onNotFound([this, &http, &redirect]() {
-        if (redirect()) return;
-        http.send(404, "text/plain", "404");
-    });
+    http.onNotFound([this, &redirect]()
+                    {
+                        if (redirect()) return;
+                        http.send(404, "text/plain", "404");
+                    });
 
     http.begin();
 
@@ -529,12 +655,13 @@ void WiFiSettingsClass::begin() {
     if (hostname.endsWith("-")) hostname += ESPMAC;
 }
 
-WiFiSettingsClass::WiFiSettingsClass() {
-    #ifdef ESP32
-        hostname = F("esp32-");
-    #else
-        hostname = F("esp8266-");
-    #endif
+WiFiSettingsClass::WiFiSettingsClass() : http(80)
+{
+#ifdef ESP32
+    hostname = F("esp32-");
+#else
+    hostname = F("esp8266-");
+#endif
 
     language = "en";
 }
