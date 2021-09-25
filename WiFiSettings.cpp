@@ -100,10 +100,27 @@ namespace {  // Helpers
         }
     };
 
-    struct WiFiSettingsInt : WiFiSettingsParameter {
+    struct WiFiSettingsInt : WiFiSettingsParameter
+    {
         virtual void set(const String& v) { value = v; }
         String html() {
             String h = F("<p><label>{label}:<br><input type=number step=1 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>");
+            h.replace("{name}", html_entities(name));
+            h.replace("{value}", html_entities(value));
+            h.replace("{init}", html_entities(init));
+            h.replace("{label}", html_entities(label));
+            h.replace("{min}", String(min));
+            h.replace("{max}", String(max));
+            return h;
+        }
+    };
+
+    struct WiFiSettingsFloat : WiFiSettingsParameter
+    {
+        virtual void set(const String &v) { value = v; }
+        String html()
+        {
+            String h = F("<p><label>{label}:<br><input type=number step=0.01 min={min} max={max} name='{name}' value='{value}' placeholder='{init}'></label>");
             h.replace("{name}", html_entities(name));
             h.replace("{value}", html_entities(value));
             h.replace("{init}", html_entities(init));
@@ -174,7 +191,7 @@ String WiFiSettingsClass::string(const String& name, unsigned int min_length, un
 
 long WiFiSettingsClass::integer(const String& name, long init, const String& label) {
     begin();
-    struct WiFiSettingsInt* x = new WiFiSettingsInt();
+    struct WiFiSettingsInt *x = new WiFiSettingsInt();
     x->name = name;
     x->label = label.length() ? label : name;
     x->init = init;
@@ -186,6 +203,27 @@ long WiFiSettingsClass::integer(const String& name, long init, const String& lab
 
 long WiFiSettingsClass::integer(const String& name, long min, long max, long init, const String& label) {
     long rv = integer(name, init, label);
+    params.back()->min = min;
+    params.back()->max = max;
+    return rv;
+}
+
+float WiFiSettingsClass::floating(const String &name, float init, const String &label)
+{
+    begin();
+    struct WiFiSettingsFloat *x = new WiFiSettingsFloat();
+    x->name = name;
+    x->label = label.length() ? label : name;
+    x->init = init;
+    x->fill();
+
+    params.push_back(x);
+    return (x->value.length() ? x->value : x->init).toFloat();
+}
+
+float WiFiSettingsClass::floating(const String &name, long min, long max, float init, const String &label)
+{
+    float rv = floating(name, init, label);
     params.back()->min = min;
     params.back()->max = max;
     return rv;
