@@ -1,8 +1,9 @@
 #include "WiFiSettings.h"
+
 #ifdef ESP32
-    #define ESPFS SPIFFS
+    #include <LittleFS.h>
+    #define ESPFS LittleFS
     #define ESPMAC (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24))
-    #include <SPIFFS.h>
     #include <WiFi.h>
     #include <WebServer.h>
     #include <esp_task_wdt.h>
@@ -535,6 +536,8 @@ WiFiSettingsClass::WiFiSettingsClass() {
     #else
         hostname = F("esp8266-");
     #endif
+
+    ESPFS.begin();
 
     language = "en";
 }
