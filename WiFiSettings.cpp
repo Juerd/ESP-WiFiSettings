@@ -100,6 +100,19 @@ namespace {  // Helpers
         }
     };
 
+    struct WiFiSettingsPasswordString : WiFiSettingsParameter {
+        virtual void set(const String& v) { value = v; }
+        String html() {
+            String h = F("<p><label>{label}:<br><input name='{name}' value='##**##**##**' placeholder='{init}' minlength={min} maxlength={max}></label>");
+            h.replace("{name}", html_entities(name));
+            h.replace("{init}", html_entities(init));
+            h.replace("{label}", html_entities(label));
+            h.replace("{min}", String(min));
+            h.replace("{max}", String(max));
+            return h;
+        }
+    };
+
     struct WiFiSettingsInt : WiFiSettingsParameter {
         virtual void set(const String& v) { value = v; }
         String html() {
@@ -172,6 +185,18 @@ String WiFiSettingsClass::string(const String& name, unsigned int min_length, un
     params.back()->min = min_length;
     params.back()->max = max_length;
     return rv;
+}
+
+String WiFiSettingsClass::passwordstring(const String& name, const String& init, const String& label) {
+    begin();
+    struct WiFiSettingsPasswordString* x = new WiFiSettingsPasswordString();
+    x->name = name;
+    x->label = label.length() ? label : name;
+    x->init = init;
+    x->fill();
+
+    params.push_back(x);
+    return x->value.length() ? x->value : x->init;
 }
 
 long WiFiSettingsClass::integer(const String& name, long init, const String& label) {
@@ -408,8 +433,11 @@ void WiFiSettingsClass::portal() {
         }
 
         for (auto& p : params) {
-            p->set(http.arg(p->name));
-            if (! p->store()) ok = false;
+            String pwstring = http.arg(p->name);
+            if (pwstring != "##**##**##**"){
+              p->set(http.arg(p->name));
+              if (! p->store()) ok = false;
+            }
         }
 
         if (ok) {
