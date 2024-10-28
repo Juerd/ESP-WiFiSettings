@@ -268,6 +268,9 @@ between other characters (i.e. not two in a row, and not as the first
 character). Most characters, including underscores (`_`) and spaces, are not
 valid in hostnames.
 
+This variable may be read any time after any other function is called to obtain
+for example a unique device id for MQTT's client-id.
+
 #### WiFiSettings.password
 
 ```C++
