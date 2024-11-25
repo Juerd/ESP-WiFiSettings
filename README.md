@@ -29,6 +29,7 @@
          * [Variables](#variables)
             * [WiFiSettings.hostname](#wifisettingshostname)
             * [WiFiSettings.password](#wifisettingspassword)
+            * [WiFiSettings.ssid](#wifisettingsssid)
             * [WiFiSettings.secure](#wifisettingssecure)
             * [WiFiSettings.language](#wifisettingslanguage)
             * [WiFiSettings.on*](#wifisettingson)
@@ -287,6 +288,16 @@ built-in password generation feature, and letting the user configure their own
 password, instead of "hard coding" a password.
 
 The password has no effect unless the portal is secured; see `.secure`.
+
+#### WiFiSettings.ssid
+
+```C++
+String
+```
+
+This variable is used to expose the SSID. This variable can be used
+to, for example, have a callback that rescans and restarts the device if the
+prefered WiFi appears.
 
 #### WiFiSettings.secure
 
