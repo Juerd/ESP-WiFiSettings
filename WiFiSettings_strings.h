@@ -43,6 +43,10 @@ std::map<const String, const String> languages {
 #if defined LANGUAGE_NL || defined LANGUAGE_ALL
     { "nl", "Nederlands" },
 #endif
+#if defined LANGUAGE_ID  // Intentionally excluded from LANGUAGE_ALL to avoid code-bloat // || defined LANGUAGE_ALL
+    { "id", "Bahasa Indonesia" },
+#endif
+
 };
 
 bool available(const String& language) {
@@ -124,7 +128,27 @@ bool select(Texts& T, String& language) {
         return true;
     }
 #endif
-
+#if defined LANGUAGE_ID // Excluded from LANGUAGE_ALL to avoid code-bloat || defined LANGUAGE_ALL
+    // Note these are auto-translated by Google Translate, better translations welcome.
+    if (WiFiSettings.language == "id") {
+      T.title = F("Konfigurasi");
+      T.portal_wpa = F("Lindungi portal konfigurasi dengan kata sandi WiFi");
+      T.portal_password = F("Kata sandi WiFi untuk portal konfigurasi");
+      T.init = "default";
+      T.wait = F("Tunggu...");
+      T.bye = F("Selamat tinggal!");
+      T.error_fs = F("Terjadi kesalahan saat menulis ke sistem berkas flash.");
+      T.button_save = F("Simpan");
+      _T.button_restart = F("Mulai ulang perangkat");
+      T.scanning_short = F("Memindai...");
+      T.scanning_long = F("Memindai jaringan WiFi...");
+      T.rescan = F("memindai ulang");
+      T.dot1x = F("(tidak berfungsi: 802.1x tidak didukung)");
+      T.ssid = F("Nama jaringan WiFi (SSID)");
+      T.wifi_password = F("Kata sandi WiFi"); 
+      T.bahasa = F("Bahasa");
+    }
+#endif
     return false;
 }
 
