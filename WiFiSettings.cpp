@@ -453,8 +453,6 @@ void WiFiSettingsClass::portal() {
 bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     begin();
 
-    WiFi.mode(WIFI_STA);
-
     ssid = slurp("/wifi-ssid");
     String pw = slurp("/wifi-password");
     if (ssid.length() == 0) {
@@ -468,6 +466,7 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
 
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);  // arduino-esp32 #2537
     WiFi.setHostname(hostname.c_str());
+    WiFi.mode(WIFI_STA);  // arduino-esp32 #6278
     WiFi.begin(ssid.c_str(), pw.c_str());
 
     unsigned long starttime = millis();
