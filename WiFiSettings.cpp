@@ -464,10 +464,13 @@ bool WiFiSettingsClass::connect(bool portal, int wait_seconds) {
     Serial.print(ssid);
     if (onConnect) onConnect();
 
+    WiFi.setHostname(hostname.c_str());
+    WiFi.begin(ssid.c_str(), pw.c_str());
+    WiFi.setHostname(hostname.c_str());
     WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);  // arduino-esp32 #2537
     WiFi.setHostname(hostname.c_str());
     WiFi.mode(WIFI_STA);  // arduino-esp32 #6278
-    WiFi.begin(ssid.c_str(), pw.c_str());
+    WiFi.setHostname(hostname.c_str());
 
     unsigned long starttime = millis();
     while (WiFi.status() != WL_CONNECTED && (wait_seconds < 0 || (millis() - starttime) < (unsigned)wait_seconds * 1000)) {
