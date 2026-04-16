@@ -170,14 +170,14 @@ bool select(Texts& T, String& language) {
        T.bye = F("Selamat tinggal!");
        T.error_fs = F("Terjadi kesalahan saat menulis ke sistem berkas flash.");
        T.button_save = F("Simpan");
-       _T.button_restart = F("Mulai ulang perangkat");
+       T.button_restart = F("Mulai ulang perangkat");
        T.scanning_short = F("Memindai...");
        T.scanning_long = F("Memindai jaringan WiFi...");
        T.rescan = F("memindai ulang");
        T.dot1x = F("(tidak berfungsi: 802.1x tidak didukung)");
        T.ssid = F("Nama jaringan WiFi (SSID)");
        T.wifi_password = F("Kata sandi WiFi"); 
-       T.bahasa = F("Bahasa");
+       T.language = F("Bahasa");
        return true;
     }
 #endif
