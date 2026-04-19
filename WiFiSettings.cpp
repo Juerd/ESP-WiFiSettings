@@ -1,8 +1,14 @@
 #include "WiFiSettings.h"
 #ifdef ESP32
-    #define ESPFS SPIFFS
     #define ESPMAC (Sprintf("%06" PRIx64, ESP.getEfuseMac() >> 24))
-    #include <SPIFFS.h>
+    
+    #ifdef WIFISETTINGS_USE_LITTLEFS
+        #define ESPFS LittleFS
+        #include <LittleFS.h>
+    #else
+        #define ESPFS SPIFFS
+        #include <SPIFFS.h>
+    #endif
     #include <WiFi.h>
     #include <WebServer.h>
     #include <esp_task_wdt.h>
@@ -359,7 +365,7 @@ void WiFiSettingsClass::portal() {
         http.sendContent(F("</a><p><label>"));
 
         http.sendContent(_WSL_T.wifi_password);
-        http.sendContent(F(":<br><input name=password value='"));
+        http.sendContent(F(":<br><input type=\"password\" name=password value='"));
         if (slurp("/wifi-password").length()) http.sendContent("##**##**##**");
         http.sendContent(F("'></label><hr>"));
 
